@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)
+// This contract is indentical to Openzeppelin's, with a simple change of names
+// in the public methods to avoid collision when inheriting along with other contracts
+// that also have onwner() and transferOwnership()
 
 pragma solidity ^0.8.20;
 

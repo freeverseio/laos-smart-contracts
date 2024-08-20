@@ -11,6 +11,7 @@
 //      ./node_modules/.bin/truffle console --network zombienet
 
 const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory");
+const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosPublicMinter = artifacts.require("LaosPublicMinter");
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 
@@ -59,7 +60,6 @@ module.exports = async (callback) => {
     console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
 
     console.log('mintWithExternalURI... again');
-    console.log('mintWithExternalURI... again');
     const response2 = await publicMinter.mintWithExternalURI(accounts[1], random32Bit, 'dummyURI', { 
       from: accounts[1], 
       gas: 5000000 
@@ -67,6 +67,33 @@ module.exports = async (callback) => {
 
     const tokenId = response2.logs[0].args["_tokenId"].toString();
     console.log('new tokenId = ', tokenId);
+
+    console.log('transferring public minting ownership');
+    const newOwner = accounts[1];
+    await publicMinter.transferPublicMinterOwnership(newOwner);
+
+    const precompileContract = await EvolutionCollection.at(newCollectionAddress);
+    console.log('precompileContract owner has changed as expected?... ', newOwner === await precompileContract.owner());
+
+    const randomSlot32bit2 = Math.floor(Math.random() * Math.pow(2, 32));
+    try {
+      await precompileContract.mintWithExternalURI(accounts[1], randomSlot32bit2, 'dummyURI', { 
+        from: accounts[0], 
+        gas: 5000000 
+      });
+      console.log('ERROR: minting by unauthorized account worked!!!');
+    } catch {
+      console.log('Minting failed as expected, since ownership of precompile contract was transferred');
+    }
+    console.log('mintWithExternalURI... again');
+    const response3 = await publicMinter.mintWithExternalURI(accounts[1], random32Bit2, 'dummyURI', { 
+      from: newOwner, 
+      gas: 5000000 
+    });
+
+    const tokenId2 = response3.logs[0].args["_tokenId"].toString();
+    console.log('new tokenId = ', tokenId2);
+
     callback();
   } catch (error) {
     console.log(error);
