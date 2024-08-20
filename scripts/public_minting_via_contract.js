@@ -37,12 +37,15 @@ module.exports = async (callback) => {
     console.log('setPrecompileAddress of publicMinter to newly created collection...');
     await publicMinter.setPrecompileAddress(newCollectionAddress);
 
+    console.log('Precompile Address matches created collection?...',  newCollectionAddress == await publicMinter.precompileAddress());
+
     const collectionOwner = await publicMinter.owner();
     console.log('Collection owner coincides with publicMinter? ', collectionOwner === publicMinter.address);
 
     console.log('trying to mintWithExternalURI...');
+    const randomSlot32bit = Math.floor(Math.random() * Math.pow(2, 32));
     try {
-      await publicMinter.mintWithExternalURI(accounts[1], 342346, 'dummyURI');
+      await publicMinter.mintWithExternalURI(accounts[1], randomSlot32bit, 'dummyURI');
       console.log('ERROR: minting by unauthorized account worked without having used public minting!!!');
     } catch {
       console.log('Minting failed as expected, since public minting is not enabled');
@@ -51,8 +54,10 @@ module.exports = async (callback) => {
     console.log('enabling public minting');
     await publicMinter.enablePublicMinting();
 
+    console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
+
     console.log('mintWithExternalURI... again');
-    const response2 = await publicMinter.mintWithExternalURI(accounts[1], 342346, 'dummyURI');
+    const response2 = await publicMinter.mintWithExternalURI(accounts[1], randomSlot32bit, 'dummyURI');
     const tokenId = response2.logs[0].args["_tokenId"].toString();
     console.log('new tokenId = ', tokenId);
     callback();

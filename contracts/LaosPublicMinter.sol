@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "./LaosEvolution.sol";
+import "./EvolutionCollection.sol";
 import "./Ownable.sol";
 
 contract LaosPublicMinter is Ownable, EvolutionCollection {
