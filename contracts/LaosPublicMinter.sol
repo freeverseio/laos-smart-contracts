@@ -4,7 +4,6 @@ pragma solidity >=0.8.3;
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
 
-
 contract LaosPublicMinter is Ownable, EvolutionCollection {
 
     address public precompileAddress;
