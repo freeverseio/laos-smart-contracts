@@ -26,8 +26,7 @@ module.exports = async (callback) => {
     const publicMinter = await LaosPublicMinter.new(publicMinterOwner);
     console.log('deploying publicMinter... deployed at ', publicMinter.address);
 
-    const _pubMinterOwner = await publicMinter.publicMinterOwner();
-    console.log('Public Minter owner is as expected? ', publicMinterOwner === _pubMinterOwner);
+    console.log('Public Minter owner is as expected? ', publicMinterOwner === await publicMinter.publicMinterOwner());
 
     console.log('creating a collection with owner = publicMinter...');
     const response = await createCollectionContract.createCollection(publicMinter.address);
@@ -45,19 +44,27 @@ module.exports = async (callback) => {
     console.log('trying to mintWithExternalURI...');
     const randomSlot32bit = Math.floor(Math.random() * Math.pow(2, 32));
     try {
-      await publicMinter.mintWithExternalURI(accounts[1], randomSlot32bit, 'dummyURI');
+      await publicMinter.mintWithExternalURI(accounts[1], random32Bit, 'dummyURI', { 
+        from: accounts[0], 
+        gas: 5000000 
+      });
       console.log('ERROR: minting by unauthorized account worked without having used public minting!!!');
     } catch {
       console.log('Minting failed as expected, since public minting is not enabled');
     }
 
-    console.log('enabling public minting');
+    console.log('enabling public minting...');
     await publicMinter.enablePublicMinting();
 
     console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
 
     console.log('mintWithExternalURI... again');
-    const response2 = await publicMinter.mintWithExternalURI(accounts[1], randomSlot32bit, 'dummyURI');
+    console.log('mintWithExternalURI... again');
+    const response2 = await publicMinter.mintWithExternalURI(accounts[1], random32Bit, 'dummyURI', { 
+      from: accounts[1], 
+      gas: 5000000 
+    });
+
     const tokenId = response2.logs[0].args["_tokenId"].toString();
     console.log('new tokenId = ', tokenId);
     callback();

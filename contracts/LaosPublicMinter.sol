@@ -10,7 +10,7 @@ contract LaosPublicMinter is Ownable, EvolutionCollection {
     bool public isPublicMintingEnabled;
 
     modifier onlyOwnerOrPublicMinting() {
-        require(owner() == msg.sender || isPublicMintingEnabled, "Not authorized");
+        require(isPublicMintingEnabled || owner() == msg.sender, "Not authorized");
         _;
     }
 
