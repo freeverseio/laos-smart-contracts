@@ -83,7 +83,10 @@ module.exports = {
     // },
     sigma: {
       provider: new HDWalletProvider(
-        process.env.DEPLOYER_MNEMONIC,
+        [
+          process.env.DEPLOYER_MNEMONIC,
+          process.env.SECOND_ACCOUNT_MNEMONIC
+        ],
         "https://rpc.laossigma.laosfoundation.io"
       ),
       network_id: 62850,

@@ -9,45 +9,50 @@
 //
 // All commands here can be done 1-by-1, manually, by doing:
 //      ./node_modules/.bin/truffle console --network zombienet
-const CreateCollectionProxy = artifacts.require("CreateCollectionProxy");
-const LaosPublicMinter = artifacts.require("LaosEvolutionPublicMinting");
+
+const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory");
+const LaosPublicMinter = artifacts.require("LaosPublicMinter");
+const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 
 module.exports = async (callback) => {
   try {
-    console.log('createCollectionContract...');
-    const createCollectionContract = await CreateCollectionProxy.new();
-    console.log('createCollectionContract at ', createCollectionContract.address);
+    const accounts = await web3.eth.getAccounts();
 
-    console.log('createAssetsContract...');
-    const createAssetsContract = await LaosPublicMinter.new();
-    console.log('createAssetsContract at ', createAssetsContract.address);
+    console.log('connecting to createCollection precompile...');
+    const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 
-    console.log('createCollection...');
-    const response = await createCollectionContract.createCollection(createAssetsContract.address);
+    console.log('deploying publicMinter...');
+    const publicMinterOwner = accounts[0];
+    const publicMinter = await LaosPublicMinter.new(publicMinterOwner);
+    console.log('deploying publicMinter... deployed at ', publicMinter.address);
+
+    const _pubMinterOwner = await publicMinter.publicMinterOwner();
+    console.log('Public Minter owner is as expected? ', publicMinterOwner === _pubMinterOwner);
+
+    console.log('creating a collection with owner = publicMinter...');
+    const response = await createCollectionContract.createCollection(publicMinter.address);
     const newCollectionAddress = response.logs[0].args["_collectionAddress"];
     console.log('newCollectionAddress at ', newCollectionAddress);
 
-    console.log('setPrecompileAddress...');
-    await createAssetsContract.setPrecompileAddress(newCollectionAddress);
+    console.log('setPrecompileAddress of publicMinter to newly created collection...');
+    await publicMinter.setPrecompileAddress(newCollectionAddress);
 
-    const collectionOwner = await createAssetsContract.owner();
-    console.log('Collection owner coincides with createAssetsContract? ', collectionOwner === createAssetsContract.address);
+    const collectionOwner = await publicMinter.owner();
+    console.log('Collection owner coincides with publicMinter? ', collectionOwner === publicMinter.address);
 
-    const dummyRecipient = collectionOwner;
-    console.log('mintWithExternalURI...');
+    console.log('trying to mintWithExternalURI...');
     try {
-      await createAssetsContract.mintWithExternalURI(dummyRecipient, 342346, 'dummyURI');
-      console.log('ERROR: minting worked without being whitelisted!!!');
+      await publicMinter.mintWithExternalURI(accounts[1], 342346, 'dummyURI');
+      console.log('ERROR: minting by unauthorized account worked without having used public minting!!!');
     } catch {
-      console.log('Minting failed as expected, since the sender is not whitelisted');
+      console.log('Minting failed as expected, since public minting is not enabled');
     }
 
-    console.log('whitelisting sender...');
-    const accounts = await web3.eth.getAccounts();
-    await createAssetsContract.allow(accounts[0]);
+    console.log('enabling public minting');
+    await publicMinter.enablePublicMinting();
 
     console.log('mintWithExternalURI... again');
-    const response2 = await createAssetsContract.mintWithExternalURI(dummyRecipient, 342346, 'dummyURI');
+    const response2 = await publicMinter.mintWithExternalURI(accounts[1], 342346, 'dummyURI');
     const tokenId = response2.logs[0].args["_tokenId"].toString();
     console.log('new tokenId = ', tokenId);
     callback();
