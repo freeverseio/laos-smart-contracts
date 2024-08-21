@@ -1,18 +1,8 @@
-//
-// Script that tests using proxy contracts to create a collection and mint
-// To mint, the owner of the collection must be set to the proxy contract
-//
-// To run this script, compile first
-//      ./node_modules/.bin/truffle compile
-// and then execute:
-//      ./node_modules/.bin/truffle exec scripts/test_flow.js  --network zombienet
-//
-// All commands here can be done 1-by-1, manually, by doing:
-//      ./node_modules/.bin/truffle console --network zombienet
-
 const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory");
 const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosPublicMinter = artifacts.require("LaosPublicMinter");
+const truffleAssert = require('truffle-assertions');
+
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 const maxGas = 5000000;
 
@@ -21,12 +11,13 @@ function random32bit() {
 }
 
 async function mint(contract, sender, recipient) {
-    const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', { 
-      from: sender, 
-      gas: maxGas 
-    });
-    const tokenId = response.logs[0].args["_tokenId"].toString();
-    console.log('new tokenId = ', tokenId);
+  const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', {
+    from: sender,
+    gas: maxGas,
+  });
+  truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
+  const tokenId = response.logs[0].args["_tokenId"].toString();
+  console.log('new tokenId = ', tokenId);
 }
 
 module.exports = async (callback) => {
@@ -47,11 +38,10 @@ module.exports = async (callback) => {
     await mint(precompileContract, alice, bob);
 
     console.log('bob cannot mint...');
-    try {
-      await mint(precompileContract, bob, alice);
-    } catch {
-      console.log('Minting by bob failed as expected');
-    }
+    await truffleAssert.fails(
+      mint(precompileContract, bob, alice),
+      truffleAssert.ErrorType.REVERT,
+    );
 
     console.log('deploying publicMinter...');
     const publicMinter = await LaosPublicMinter.new(alice);
@@ -68,97 +58,89 @@ module.exports = async (callback) => {
 
     console.log('Precompile owner can be queried via publicMinter and matches direct query? ', await precompileContract.owner() === publicMinter.address);
 
-    console.log('Bob cannot mint using the publicMinter...')
-    try {
-      await mint(publicMinter, bob, alice);
-    } catch {
-      console.log('Minting by bob failed as expected');
-    }
-    console.log('Bob cannot mint using the precompile neither...')
-    try {
-      await mint(precompileContract, bob, alice);
-    } catch {
-      console.log('Minting by bob failed as expected');
-    }
-    console.log('alice cannot mint using the precompile neither...')
-    try {
-      await mint(precompileContract, alice, bob);
-    } catch {
-      console.log('Minting by alice failed as expected');
-    }
+    console.log('Bob cannot mint using the publicMinter...');
+    await truffleAssert.fails(
+      mint(publicMinter, bob, alice),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('alice can mint using the publicMinter since she owns it...')
+    console.log('Bob cannot mint using the precompile neither...');
+    await truffleAssert.fails(
+      mint(precompileContract, bob, alice),
+      truffleAssert.ErrorType.REVERT,
+    );
+
+    console.log('alice cannot mint using the precompile neither...');
+    await truffleAssert.fails(
+      mint(precompileContract, alice, bob),
+      truffleAssert.ErrorType.REVERT,
+    );
+
+    console.log('alice can mint using the publicMinter since she owns it...');
     await mint(precompileContract, alice, bob);
 
     console.log('bob is not authorized to enable public minting...');
-    try {
-      await publicMinter.enablePublicMinting({from: bob, gas: maxGas}); 
-    } catch {
-      console.log('bob managed to do an onlyOwner action!');
-    }
+    await truffleAssert.fails(
+      publicMinter.enablePublicMinting({from: bob, gas: maxGas}),
+      truffleAssert.ErrorType.REVERT,
+    );
 
     console.log('alice enables public minting...');
     await publicMinter.enablePublicMinting();
     console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
 
-    console.log('bob can now mint using the publicMinter...')
+    console.log('bob can now mint using the publicMinter...');
     await mint(publicMinter, bob, alice);
 
-    console.log('bob cannot mint using the precompile...')
-    try {
-      await mint(precompileContract, bob, alice);
-    } catch {
-      console.log('Minting by alice failed as expected');
-    }
+    console.log('bob cannot mint using the precompile...');
+    await truffleAssert.fails(
+      mint(precompileContract, bob, alice),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('bob cannot transfer public minting ownership..');
-    try {
-      await publicMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}); 
-    } catch {
-      console.log('bob managed to do an onlyOwner action!');
-    }
+    console.log('bob cannot transfer public minting ownership...');
+    await truffleAssert.fails(
+      publicMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}),
+      truffleAssert.ErrorType.REVERT,
+    );
 
     console.log('alice transfers public minting ownership to bob...');
     await publicMinter.transferPublicMinterOwnership(bob);
 
     console.log('precompileContract owner has changed as expected?... ', bob === await precompileContract.owner());
 
-    console.log('alice cannot disable public minting..');
-    try {
-      await publicMinter.disablePublicMinting({from: alice, gas: maxGas}); 
-    } catch {
-      console.log('alice managed to do an onlyOwner action!');
-    }
+    console.log('alice cannot disable public minting...');
+    await truffleAssert.fails(
+      publicMinter.disablePublicMinting({from: alice, gas: maxGas}),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('bob disables public minting..');
-    await publicMinter.disablePublicMinting({from: bob, gas: maxGas}); 
+    console.log('bob disables public minting...');
+    await publicMinter.disablePublicMinting({from: bob, gas: maxGas});
 
-    console.log('alice cannot mint anymore...')
-    try {
-      await mint(precompileContract, alice, bob);
-    } catch {
-      console.log('Minting by alice failed as expected');
-    }
+    console.log('alice cannot mint anymore...');
+    await truffleAssert.fails(
+      mint(precompileContract, alice, bob),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('bob can since he owns the publicMinter...')
+    console.log('bob can since he owns the publicMinter...');
     await mint(precompileContract, bob, alice);
 
-    console.log('alice cannot change the owner of the precompile using the precompile...')
-    try {
-      await precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}); 
-    } catch {
-      console.log('...failed as expected');
-    }
+    console.log('alice cannot change the owner of the precompile using the precompile...');
+    await truffleAssert.fails(
+      precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('alice cannot change the owner of the precompile using the publicMinter...')
-    try {
-      await publicMinter.transferOwnership(alice, {from: alice, gas: maxGas}); 
-    } catch {
-      console.log('...failed as expected');
-    }
+    console.log('alice cannot change the owner of the precompile using the publicMinter...');
+    await truffleAssert.fails(
+      publicMinter.transferOwnership(alice, {from: alice, gas: maxGas}),
+      truffleAssert.ErrorType.REVERT,
+    );
 
-    console.log('bob changes the ownership of the precompile using the publicMinter...')
-    await publicMinter.transferOwnership(alice, {from: bob, gas: maxGas}); 
+    console.log('bob changes the ownership of the precompile using the publicMinter...');
+    await publicMinter.transferOwnership(alice, {from: bob, gas: maxGas});
 
     callback();
   } catch (error) {

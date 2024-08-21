@@ -95,19 +95,19 @@ module.exports = {
       timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
 
-    // mercury: {
-    //   provider: new HDWalletProvider(
-    //     [
-    //       process.env.DEPLOYER_MNEMONIC,
-    //       process.env.SECOND_ACCOUNT_MNEMONIC
-    //     ],
-    //     "https://rpc.laosmercury.gorengine.com"
-    //   ),
-    //   network_id: 6679,
-    //   gasPrice: 5000000000, // fast = 5000000000, slow = 1000000000
-    //   gas: 5000000, // sets the max gas
-    //   timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
-    // },
+    mercury: {
+      provider: new HDWalletProvider(
+        [
+          process.env.DEPLOYER_MNEMONIC,
+          process.env.SECOND_ACCOUNT_MNEMONIC
+        ],
+        "https://rpc.laosmercury.gorengine.com"
+      ),
+      network_id: 6679,
+      gasPrice: 5000000000, // fast = 5000000000, slow = 1000000000
+      gas: 5000000, // sets the max gas
+      timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
+    },
     // zombienet: {
     //   provider: new HDWalletProvider(
     //     process.env.DEPLOYER_MNEMONIC,
