@@ -14,6 +14,7 @@ const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory
 const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosPublicMinter = artifacts.require("LaosPublicMinter");
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
+const maxGas = 5000000;
 
 function random32bit() {
   return Math.floor(Math.random() * Math.pow(2, 32));
@@ -22,7 +23,7 @@ function random32bit() {
 async function mint(contract, sender, recipient) {
     const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', { 
       from: sender, 
-      gas: 5000000 
+      gas: maxGas 
     });
     const tokenId = response.logs[0].args["_tokenId"].toString();
     console.log('new tokenId = ', tokenId);
@@ -91,7 +92,7 @@ module.exports = async (callback) => {
 
     console.log('bob is not authorized to enable public minting...');
     try {
-      await publicMinter.enablePublicMinting({from: bob, gas: 5000000}); 
+      await publicMinter.enablePublicMinting({from: bob, gas: maxGas}); 
     } catch {
       console.log('bob managed to do an onlyOwner action!');
     }
@@ -110,29 +111,54 @@ module.exports = async (callback) => {
       console.log('Minting by alice failed as expected');
     }
 
-    console.log('transferring public minting ownership');
-    const newOwner = bob;
-    await publicMinter.transferPublicMinterOwnership(newOwner);
-
-    console.log('precompileContract owner has changed as expected?... ', newOwner === await precompileContract.owner());
-
+    console.log('bob cannot transfer public minting ownership..');
     try {
-      await precompileContract.mintWithExternalURI(bob, randomSlot32bit2, 'dummyURI', { 
-        from: alice, 
-        gas: 5000000 
-      });
-      console.log('ERROR: minting by unauthorized account worked!!!');
+      await publicMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}); 
     } catch {
-      console.log('Minting failed as expected, since ownership of precompile contract was transferred');
+      console.log('bob managed to do an onlyOwner action!');
     }
-    console.log('mintWithExternalURI... again');
-    const response3 = await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
-      from: newOwner, 
-      gas: 5000000 
-    });
 
-    const tokenId2 = response3.logs[0].args["_tokenId"].toString();
-    console.log('new tokenId = ', tokenId2);
+    console.log('alice transfers public minting ownership to bob...');
+    await publicMinter.transferPublicMinterOwnership(bob);
+
+    console.log('precompileContract owner has changed as expected?... ', bob === await precompileContract.owner());
+
+    console.log('alice cannot disable public minting..');
+    try {
+      await publicMinter.disablePublicMinting({from: alice, gas: maxGas}); 
+    } catch {
+      console.log('alice managed to do an onlyOwner action!');
+    }
+
+    console.log('bob disables public minting..');
+    await publicMinter.disablePublicMinting({from: bob, gas: maxGas}); 
+
+    console.log('alice cannot mint anymore...')
+    try {
+      await mint(precompileContract, alice, bob);
+    } catch {
+      console.log('Minting by alice failed as expected');
+    }
+
+    console.log('bob can since he owns the publicMinter...')
+    await mint(precompileContract, bob, alice);
+
+    console.log('alice cannot change the owner of the precompile using the precompile...')
+    try {
+      await precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}); 
+    } catch {
+      console.log('...failed as expected');
+    }
+
+    console.log('alice cannot change the owner of the precompile using the publicMinter...')
+    try {
+      await publicMinter.transferOwnership(alice, {from: alice, gas: maxGas}); 
+    } catch {
+      console.log('...failed as expected');
+    }
+
+    console.log('bob changes the ownership of the precompile using the publicMinter...')
+    await publicMinter.transferOwnership(alice, {from: bob, gas: maxGas}); 
 
     callback();
   } catch (error) {
