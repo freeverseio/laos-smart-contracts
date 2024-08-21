@@ -76,8 +76,10 @@ module.exports = async (callback) => {
       truffleAssert.ErrorType.REVERT,
     );
 
+    console.log('alice owns public minter?...',  alice == await publicMinter.publicMinterOwner());
+
     console.log('alice can mint using the publicMinter since she owns it...');
-    await mint(precompileContract, alice, bob);
+    await mint(publicMinter, alice, bob);
 
     console.log('bob is not authorized to enable public minting...');
     await truffleAssert.fails(
@@ -120,12 +122,12 @@ module.exports = async (callback) => {
 
     console.log('alice cannot mint anymore...');
     await truffleAssert.fails(
-      mint(precompileContract, alice, bob),
+      mint(publicMinter, alice, bob),
       truffleAssert.ErrorType.REVERT,
     );
 
     console.log('bob can since he owns the publicMinter...');
-    await mint(precompileContract, bob, alice);
+    await mint(publicMinter, bob, alice);
 
     console.log('alice cannot change the owner of the precompile using the precompile...');
     await truffleAssert.fails(
@@ -141,6 +143,7 @@ module.exports = async (callback) => {
 
     console.log('bob changes the ownership of the precompile using the publicMinter...');
     await publicMinter.transferOwnership(alice, {from: bob, gas: maxGas});
+    console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
 
     callback();
   } catch (error) {
