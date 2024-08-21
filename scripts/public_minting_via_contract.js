@@ -14,9 +14,9 @@ async function tryWithRetries(func, retries = 3) {
       console.log('...attempt: ', i, 'failed as expected');
       return; // if the function succeeds, exit
     } catch (error) {
-      if (error.message.includes('revert')) {
-        throw error; // If the error is a revert, we throw it
-      }
+      // if (error.message.includes('revert')) {
+      //   throw error; // If the error is a revert, we throw it
+      // }
       console.log(`Retrying... (${i + 1}/${retries})`);
       if (i === retries - 1) throw error; // after max retries, throw the error
     }
