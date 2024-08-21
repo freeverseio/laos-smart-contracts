@@ -67,30 +67,48 @@ module.exports = async (callback) => {
 
     console.log('Precompile owner can be queried via publicMinter and matches direct query? ', await precompileContract.owner() === publicMinter.address);
 
-    console.log('trying to mintWithExternalURI...');
+    console.log('Bob cannot mint using the publicMinter...')
     try {
-      await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
-        from: alice, 
-        gas: 5000000 
-      });
-      console.log('ERROR: minting by unauthorized account worked without having used public minting!!!');
+      await mint(publicMinter, bob, alice);
     } catch {
-      console.log('Minting failed as expected, since public minting is not enabled');
+      console.log('Minting by bob failed as expected');
+    }
+    console.log('Bob cannot mint using the precompile neither...')
+    try {
+      await mint(precompileContract, bob, alice);
+    } catch {
+      console.log('Minting by bob failed as expected');
+    }
+    console.log('alice cannot mint using the precompile neither...')
+    try {
+      await mint(precompileContract, alice, bob);
+    } catch {
+      console.log('Minting by alice failed as expected');
     }
 
-    console.log('enabling public minting...');
-    await publicMinter.enablePublicMinting();
+    console.log('alice can mint using the publicMinter since she owns it...')
+    await mint(precompileContract, alice, bob);
 
+    console.log('bob is not authorized to enable public minting...');
+    try {
+      await publicMinter.enablePublicMinting({from: bob, gas: 5000000}); 
+    } catch {
+      console.log('bob managed to do an onlyOwner action!');
+    }
+
+    console.log('alice enables public minting...');
+    await publicMinter.enablePublicMinting();
     console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
 
-    console.log('mintWithExternalURI... again');
-    const response2 = await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
-      from: bob, 
-      gas: 5000000 
-    });
+    console.log('bob can now mint using the publicMinter...')
+    await mint(publicMinter, bob, alice);
 
-    const tokenId = response2.logs[0].args["_tokenId"].toString();
-    console.log('new tokenId = ', tokenId);
+    console.log('bob cannot mint using the precompile...')
+    try {
+      await mint(precompileContract, bob, alice);
+    } catch {
+      console.log('Minting by alice failed as expected');
+    }
 
     console.log('transferring public minting ownership');
     const newOwner = bob;
@@ -98,7 +116,6 @@ module.exports = async (callback) => {
 
     console.log('precompileContract owner has changed as expected?... ', newOwner === await precompileContract.owner());
 
-    const randomSlot32bit2 = Math.floor(Math.random() * Math.pow(2, 32));
     try {
       await precompileContract.mintWithExternalURI(bob, randomSlot32bit2, 'dummyURI', { 
         from: alice, 
