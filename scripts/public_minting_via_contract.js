@@ -6,35 +6,30 @@ const truffleAssert = require('truffle-assertions');
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 const maxGas = 5000000;
 
-async function tryWithRetries(func, retries = 3) {
-  for (let i = 0; i < retries; i++) {
+async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
+  let attempts = 0;
+
+  while (attempts < retries) {
     try {
-      console.log('...attempt: ', i);
-      await func();
-      console.log('...attempt: ', i, 'failed as expected');
-      return; // if the function succeeds, exit
+      console.log(`Attempt ${attempts + 1}...`);
+      await asyncFunc(); // Call the async function
+      console.log('Transaction did not revert, retrying...');
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, delay)); // Wait before retrying
     } catch (error) {
-      // if (error.message.includes('revert')) {
-      //   throw error; // If the error is a revert, we throw it
-      // }
-      console.log(`Retrying... (${i + 1}/${retries})`);
-      if (i === retries - 1) throw error; // after max retries, throw the error
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait for 10 seconds
+      if (error.message.includes('revert')) {
+        console.log('Transaction reverted as expected.');
+        return;
+      } else {
+        console.log(`Error encountered: ${error.message}`);
+        console.log('Retrying due to a non-revert error...');
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, delay)); // Wait before retrying
+      }
     }
   }
-}
 
-async function assertReverts(func) {
-  // Sometimes the failure to exeecture the TX is not due to a revert of the code,
-  // but, e.g., to the node refusing connection, etc.
-  // This code makes sure that the TX fails due to a revert, otherwise tries a few more
-  // times until it truly reverts.
-  await tryWithRetries(async () => {
-    await truffleAssert.fails(
-        func,
-        truffleAssert.ErrorType.REVERT,
-    );
-  });
+  throw new Error('Transaction did not revert after maximum retries');
 }
 
 function random32bit() {
@@ -69,7 +64,7 @@ module.exports = async (callback) => {
     await mint(precompileContract, alice, bob);
 
     console.log('bob cannot mint...');
-    await assertReverts(mint(precompileContract, bob, alice));
+    await assertReverts(() => mint(precompileContract, bob, alice));
 
     console.log('deploying publicMinter...');
     const publicMinter = await LaosPublicMinter.new(alice);
@@ -87,13 +82,13 @@ module.exports = async (callback) => {
     console.log('Precompile owner can be queried via publicMinter and matches direct query? ', await precompileContract.owner() === publicMinter.address);
 
     console.log('Bob cannot mint using the publicMinter...');
-    await assertReverts(mint(publicMinter, bob, alice));
+    await assertReverts(() => mint(publicMinter, bob, alice));
 
     console.log('Bob cannot mint using the precompile neither...');
-    await assertReverts(mint(precompileContract, bob, alice));
+    await assertReverts(() => mint(precompileContract, bob, alice));
 
     console.log('alice cannot mint using the precompile neither...');
-    await assertReverts(mint(precompileContract, alice, bob));
+    await assertReverts(() => mint(precompileContract, alice, bob));
 
     console.log('alice owns public minter?...',  alice == await publicMinter.publicMinterOwner());
 
@@ -101,7 +96,7 @@ module.exports = async (callback) => {
     await mint(publicMinter, alice, bob);
 
     console.log('bob is not authorized to enable public minting...');
-    await assertReverts(publicMinter.enablePublicMinting({from: bob, gas: maxGas}));
+    await assertReverts(() => publicMinter.enablePublicMinting({from: bob, gas: maxGas}));
 
     console.log('alice enables public minting...');
     await publicMinter.enablePublicMinting();
@@ -111,10 +106,10 @@ module.exports = async (callback) => {
     await mint(publicMinter, bob, alice);
 
     console.log('bob cannot mint using the precompile...');
-    await assertReverts(mint(precompileContract, bob, alice));
+    await assertReverts(() => mint(precompileContract, bob, alice));
 
     console.log('bob cannot transfer public minting ownership...');
-    await assertReverts(publicMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}));
+    await assertReverts(() => publicMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}));
 
     console.log('alice transfers public minting ownership to bob...');
     await publicMinter.transferPublicMinterOwnership(bob);
@@ -122,22 +117,22 @@ module.exports = async (callback) => {
     console.log('precompileContract owner has changed as expected?... ', bob === await precompileContract.owner());
 
     console.log('alice cannot disable public minting...');
-    await assertReverts(publicMinter.disablePublicMinting({from: alice, gas: maxGas}));
+    await assertReverts(() => publicMinter.disablePublicMinting({from: alice, gas: maxGas}));
 
     console.log('bob disables public minting...');
     await publicMinter.disablePublicMinting({from: bob, gas: maxGas});
 
     console.log('alice cannot mint anymore...');
-    await assertReverts(mint(publicMinter, alice, bob));
+    await assertReverts(() => mint(publicMinter, alice, bob));
 
     console.log('bob can since he owns the publicMinter...');
     await mint(publicMinter, bob, alice);
 
     console.log('alice cannot change the owner of the precompile using the precompile...');
-    await assertReverts(precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
+    await assertReverts(() => precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
 
     console.log('alice cannot change the owner of the precompile using the publicMinter...');
-    await assertReverts(publicMinter.transferOwnership(alice, {from: alice, gas: maxGas}));
+    await assertReverts(() => publicMinter.transferOwnership(alice, {from: alice, gas: maxGas}));
 
     console.log('bob changes the ownership of the precompile using the publicMinter...');
     await publicMinter.transferOwnership(alice, {from: bob, gas: maxGas});
