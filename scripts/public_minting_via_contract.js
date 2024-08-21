@@ -15,38 +15,62 @@ const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosPublicMinter = artifacts.require("LaosPublicMinter");
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 
+function random32bit() {
+  return Math.floor(Math.random() * Math.pow(2, 32));
+}
+
+async function mint(contract, sender, recipient) {
+    const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', { 
+      from: sender, 
+      gas: 5000000 
+    });
+    const tokenId = response.logs[0].args["_tokenId"].toString();
+    console.log('new tokenId = ', tokenId);
+}
+
 module.exports = async (callback) => {
   try {
-    const accounts = await web3.eth.getAccounts();
+    const [alice, bob] = await web3.eth.getAccounts();
 
     console.log('connecting to createCollection precompile...');
     const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 
-    console.log('deploying publicMinter...');
-    const publicMinterOwner = accounts[0];
-    const publicMinter = await LaosPublicMinter.new(publicMinterOwner);
-    console.log('deploying publicMinter... deployed at ', publicMinter.address);
-
-    console.log('Public Minter owner is as expected? ', publicMinterOwner === await publicMinter.publicMinterOwner());
-
-    console.log('creating a collection with owner = publicMinter...');
-    const response = await createCollectionContract.createCollection(publicMinter.address);
+    console.log('creating a collection with owner = alice...');
+    const response = await createCollectionContract.createCollection(alice);
     const newCollectionAddress = response.logs[0].args["_collectionAddress"];
     console.log('newCollectionAddress at ', newCollectionAddress);
+    const precompileContract = await EvolutionCollection.at(newCollectionAddress);
+    console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
+
+    console.log('alice can mint...');
+    await mint(precompileContract, alice, bob);
+
+    console.log('bob cannot mint...');
+    try {
+      await mint(precompileContract, bob, alice);
+    } catch {
+      console.log('Minting by bob failed as expected');
+    }
+
+    console.log('deploying publicMinter...');
+    const publicMinter = await LaosPublicMinter.new(alice);
+    console.log('deploying publicMinter... deployed at ', publicMinter.address);
+    console.log('Public Minter owner is alice as expected? ', alice === await publicMinter.publicMinterOwner());
+
+    console.log('set owner of precompile to public minter...');
+    await precompileContract.transferOwnership(publicMinter.address);
+    console.log('precompileContract owner is publicMinter?... ', publicMinter.address === await precompileContract.owner());
 
     console.log('setPrecompileAddress of publicMinter to newly created collection...');
     await publicMinter.setPrecompileAddress(newCollectionAddress);
+    console.log('Precompile Address matches created collection precompile?...',  newCollectionAddress == await publicMinter.precompileAddress());
 
-    console.log('Precompile Address matches created collection?...',  newCollectionAddress == await publicMinter.precompileAddress());
-
-    const collectionOwner = await publicMinter.owner();
-    console.log('Collection owner coincides with publicMinter? ', collectionOwner === publicMinter.address);
+    console.log('Precompile owner can be queried via publicMinter and matches direct query? ', await precompileContract.owner() === publicMinter.address);
 
     console.log('trying to mintWithExternalURI...');
-    const randomSlot32bit = Math.floor(Math.random() * Math.pow(2, 32));
     try {
-      await publicMinter.mintWithExternalURI(accounts[1], random32Bit, 'dummyURI', { 
-        from: accounts[0], 
+      await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
+        from: alice, 
         gas: 5000000 
       });
       console.log('ERROR: minting by unauthorized account worked without having used public minting!!!');
@@ -60,8 +84,8 @@ module.exports = async (callback) => {
     console.log('is public minting enabled?...', await publicMinter.isPublicMintingEnabled());
 
     console.log('mintWithExternalURI... again');
-    const response2 = await publicMinter.mintWithExternalURI(accounts[1], random32Bit, 'dummyURI', { 
-      from: accounts[1], 
+    const response2 = await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
+      from: bob, 
       gas: 5000000 
     });
 
@@ -69,16 +93,15 @@ module.exports = async (callback) => {
     console.log('new tokenId = ', tokenId);
 
     console.log('transferring public minting ownership');
-    const newOwner = accounts[1];
+    const newOwner = bob;
     await publicMinter.transferPublicMinterOwnership(newOwner);
 
-    const precompileContract = await EvolutionCollection.at(newCollectionAddress);
     console.log('precompileContract owner has changed as expected?... ', newOwner === await precompileContract.owner());
 
     const randomSlot32bit2 = Math.floor(Math.random() * Math.pow(2, 32));
     try {
-      await precompileContract.mintWithExternalURI(accounts[1], randomSlot32bit2, 'dummyURI', { 
-        from: accounts[0], 
+      await precompileContract.mintWithExternalURI(bob, randomSlot32bit2, 'dummyURI', { 
+        from: alice, 
         gas: 5000000 
       });
       console.log('ERROR: minting by unauthorized account worked!!!');
@@ -86,7 +109,7 @@ module.exports = async (callback) => {
       console.log('Minting failed as expected, since ownership of precompile contract was transferred');
     }
     console.log('mintWithExternalURI... again');
-    const response3 = await publicMinter.mintWithExternalURI(accounts[1], random32Bit2, 'dummyURI', { 
+    const response3 = await publicMinter.mintWithExternalURI(bob, random32bit(), 'dummyURI', { 
       from: newOwner, 
       gas: 5000000 
     });
