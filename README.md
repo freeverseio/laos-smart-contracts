@@ -9,6 +9,11 @@ for the write methods. It is to be used by:
 
 Note that evolution remains in sole control of the owner of the publicMinter contract.
 
+There is a minimal version of the contract: `contracts/LaosPublicMinterMinimal.sol` which simply does not
+have any enable/disable methods. Transferring the ownership of the precompile to this minimal contract
+automaticall enables public minting. Disabling it can simply be done by then transferring the ownership
+of the precompile to a different EOA addresss.
+
 ## Install, compile and test
 
 1. install and compile:
@@ -28,4 +33,5 @@ SECOND_ACCOUNT_MNEMONIC="3f.......11"
 3. Execute script that tests it all:
 ```shell
 $ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract --network sigma
+$ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract_minimal --network sigma
 ```
