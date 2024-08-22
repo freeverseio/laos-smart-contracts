@@ -36,6 +36,14 @@ function random32bit() {
   return Math.floor(Math.random() * Math.pow(2, 32));
 }
 
+function random32bitArray(n) {
+  const result = new Set();
+  while (result.size < n) {
+    result.add(random32bit());
+  }
+  return Array.from(result);
+}
+
 async function mint(contract, sender, recipient) {
   const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', {
     from: sender,
@@ -44,7 +52,28 @@ async function mint(contract, sender, recipient) {
   truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
   const tokenId = response.logs[0].args["_tokenId"].toString();
   console.log('new tokenId = ', tokenId);
+  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
+  console.log(`Gas used for minting: ${txReceipt.gasUsed}`);
 }
+
+async function batchMint(contract, sender, recipient, num = 10) {
+  const recipients = Array(num).fill(recipient);
+  const randoms = random32bitArray(nun);
+  const uris = Array(num).fill('dummyURI');
+
+  const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
+    from: sender,
+    gas: num * maxGas,
+  });
+  // truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
+  console.log('Num events = ', response.logs.length);
+  const tokenId = response.logs[0].args["_tokenId"].toString();
+  console.log('new tokenId = ', tokenId);
+  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
+  console.log(`Gas used for minting: ${txReceipt.gasUsed}`);
+}
+
+
 
 module.exports = async (callback) => {
   try {
@@ -56,14 +85,17 @@ module.exports = async (callback) => {
     console.log('Creating a collection with owner = alice...');
     const response = await createCollectionContract.createCollection(alice);
     const newCollectionAddress = response.logs[0].args["_collectionAddress"];
+    // const newCollectionAddress = "0xFFFFfFFFfFFFFfFFFfFFFfFE000000000000003F"; // response.logs[0].args["_collectionAddress"];
     console.log('...newCollectionAddress at ', newCollectionAddress);
     const precompileContract = await EvolutionCollection.at(newCollectionAddress);
     console.log('...precompileContract owner is alice?... ', alice === await precompileContract.owner());
 
     console.log('Deploying batchMinter with alice as owner...');
     const batchMinter = await LaosBatchMinter.new(alice);
+    // const batchMinter = await LaosBatchMinter.at("0x486b1E07070544b5006448A6b47C978d17169cb8");
     console.log('...batchMinter deployed at ', batchMinter.address);
     console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
+
 
     console.log('Set owner of precompile to batchMinter...');
     await precompileContract.transferOwnership(batchMinter.address);
