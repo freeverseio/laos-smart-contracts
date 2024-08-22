@@ -95,7 +95,8 @@ module.exports = async (callback) => {
     console.log('Alice transfers batchMinter ownership to bob...');
     await batchMinter.transferBatchMinterOwnership(bob);
 
-    console.log('PrecompileContract owner has changed as expected?... ', bob === await precompileContract.owner());
+    console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
+    console.log('batchMinter owner has changed as expected?... ', bob === await batchMinter.batchMinterOwner());
 
     console.log('Alice cannot change the owner of the precompile using the precompile...');
     await assertReverts(() => precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
