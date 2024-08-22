@@ -3,7 +3,8 @@ const LaosPublicMinter = artifacts.require("LaosPublicMinterMinimal");
 const truffleAssert = require('truffle-assertions');
 
 // This script configures and existing precompile collection to be owned by a LAOSPublicMinterMinimal contract
-const existingCollectionAddress = "0xfffffffffffffffffffffffe000000000000000e";
+// polgygon = 0xfffffffffffffffffffffffe000000000000000d, ethereum = 0xfffffffffffffffffffffffe000000000000000e
+const existingCollectionAddress = "0xfffffffffffffffffffffffe000000000000000d";
 const maxGas = 5000000;
 
 function random32bit() {
@@ -36,8 +37,8 @@ module.exports = async (callback) => {
     console.log('...publicMinter owner is alice as expected? ', alice === await publicMinter.publicMinterOwner());
 
     console.log('Setting precompileAddress of publicMinter to exisiting precompile collection...');
-    await publicMinter.setPrecompileAddress(existingCollectionAddress);
-    console.log('...precompile address matches collection precompile?...',  existingCollectionAddress == await publicMinter.precompileAddress());
+    await publicMinter.setPrecompileAddress(precompileContract.address);
+    console.log('...precompile address matches collection precompile?...',  precompileContract.address == await publicMinter.precompileAddress());
 
     console.log('Setting owner of precompile to publicMinter...');
     await precompileContract.transferOwnership(publicMinter.address);
