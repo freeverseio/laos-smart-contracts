@@ -6,6 +6,7 @@ const truffleAssert = require('truffle-assertions');
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 const maxGas = 5000000;
 const maxGasInBlock = 13000000; // if we set it to 14M it fails
+const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
 
 async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
   let attempts = 0;
@@ -57,17 +58,17 @@ async function mint(contract, sender, recipient) {
   console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
 }
 
-async function batchMint(contract, sender, recipient, num = 700) {
-  console.log('...Batch Minting', num, "assets");
+async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 700) {
+  console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
-  const uris = Array(num).fill('dummyURI');
+  const repeatedString = 'a'.repeat(uriLen);
+  const uris = Array(num).fill(repeatedString);
 
   const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
     from: sender,
     gas: maxGasInBlock,
   });
-  // truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
   const nEvents = response.logs.length;
   console.log('...num events produced = ', nEvents);
   const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
