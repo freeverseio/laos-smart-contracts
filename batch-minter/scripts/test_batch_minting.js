@@ -5,6 +5,7 @@ const truffleAssert = require('truffle-assertions');
 
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 const maxGas = 5000000;
+const maxGasInBlock = 13000000; // if we set it to 14M it fails
 
 async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
   let attempts = 0;
@@ -56,34 +57,26 @@ async function mint(contract, sender, recipient) {
   console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
 }
 
-async function batchMint(contract, sender, recipient, num = 2) {
+async function batchMint(contract, sender, recipient, num = 700) {
+  console.log('...Batch Minting', num, "assets");
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
   const uris = Array(num).fill('dummyURI');
 
-  console.log(recipients,randoms, uris)
-
-  const response = await contract.mintWithExternalURIBatch(
-    [recipient, recipient],
-    [random32bit(), random32bit()],
-    ["dummy", "dummy"],
-    {
-      from: sender,
-      gas: 1000000,
-    }
-  );
-
-  // const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
-  //   from: sender,
-  //   gas: 13000000,
-  // });
+  const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
+    from: sender,
+    gas: maxGasInBlock,
+  });
   // truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
-  console.log('Num events = ', response.logs.length);
-  const tokenId = response.logs[0].args["_tokenId"].toString();
-  console.log('new tokenId = ', tokenId);
+  const nEvents = response.logs.length;
+  console.log('...num events produced = ', nEvents);
   const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
   console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
   console.log(`Gas used per mint: ${Number(txReceipt.gasUsed)/num}`);
+  const tokenId0 = response.logs[0].args["_tokenId"].toString();
+  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
+  console.log('first produced tokenId = ', tokenId0);
+  console.log('first produced tokenId = ', tokenIdLast);
 }
 
 
@@ -96,26 +89,26 @@ module.exports = async (callback) => {
     const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 
     console.log('Creating a collection with owner = alice...');
-    const response = await createCollectionContract.createCollection(alice);
-    const newCollectionAddress = response.logs[0].args["_collectionAddress"];
-    // const newCollectionAddress = "0xFFffFFFFfFfFFFfffFfFfFfE0000000000000042";
+    // const response = await createCollectionContract.createCollection(alice);
+    // const newCollectionAddress = response.logs[0].args["_collectionAddress"];
+    const newCollectionAddress = "0xffFfFFFffFfFFFfFffFFFFFe0000000000000044";
     console.log('...newCollectionAddress at ', newCollectionAddress);
     const precompileContract = await EvolutionCollection.at(newCollectionAddress);
     console.log('...precompileContract owner is alice?... ', alice === await precompileContract.owner());
 
     console.log('Deploying batchMinter with alice as owner...');
-    const batchMinter = await LaosBatchMinter.new(alice);
-    // const batchMinter = await LaosBatchMinter.at("0x0ae4e385919293C88DE72e0b2a48D59434669dc8");
+    // const batchMinter = await LaosBatchMinter.new(alice);
+    const batchMinter = await LaosBatchMinter.at("0x6E7521c21Bb337D0fF3f555FE362f4CC925f0Ab3");
     console.log('...batchMinter deployed at ', batchMinter.address);
     console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
 
 
     // console.log('Set owner of precompile to batchMinter...');
-    await precompileContract.transferOwnership(batchMinter.address);
-    console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
+    // await precompileContract.transferOwnership(batchMinter.address);
+    // console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
 
     // console.log('SetPrecompileAddress of batchMinter to newly created collection...');
-    await batchMinter.setPrecompileAddress(newCollectionAddress);
+    // await batchMinter.setPrecompileAddress(newCollectionAddress);
     console.log('...precompile address matches created collection precompile?...',  newCollectionAddress == await batchMinter.precompileAddress());
 
     console.log('Precompile owner can be queried via batchMinter and matches direct query? ', await precompileContract.owner() === batchMinter.address);
@@ -124,10 +117,11 @@ module.exports = async (callback) => {
     console.log('Alice can batch mint using the batchMinter...');
     await batchMint(batchMinter, alice, bob);
 
+    console.log('DONE');return;
+
     console.log('Alice can mint using the batchMinter...');
     await mint(batchMinter, alice, bob);
 
-    console.log('DONE');return;
     console.log('Bob cannot mint using the batchMinter...');
     await assertReverts(() => mint(batchMinter, bob, alice));
 
