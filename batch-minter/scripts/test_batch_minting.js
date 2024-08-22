@@ -47,7 +47,8 @@ function random32bitArray(n) {
 }
 
 async function mint(contract, sender, recipient) {
-  const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', {
+  const repeatedString = 'a'.repeat(typicalURILength);
+  const response = await contract.mintWithExternalURI(recipient, random32bit(), repeatedString, {
     from: sender,
     gas: maxGas,
   });
@@ -90,35 +91,34 @@ module.exports = async (callback) => {
     const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 
     console.log('Creating a collection with owner = alice...');
-    // const response = await createCollectionContract.createCollection(alice);
-    // const newCollectionAddress = response.logs[0].args["_collectionAddress"];
-    const newCollectionAddress = "0xffFfFFFffFfFFFfFffFFFFFe0000000000000044";
+    const response = await createCollectionContract.createCollection(alice);
+    const newCollectionAddress = response.logs[0].args["_collectionAddress"];
+    // const newCollectionAddress = "0xffFfFFFffFfFFFfFffFFFFFe0000000000000044";
     console.log('...newCollectionAddress at ', newCollectionAddress);
     const precompileContract = await EvolutionCollection.at(newCollectionAddress);
     console.log('...precompileContract owner is alice?... ', alice === await precompileContract.owner());
 
     console.log('Deploying batchMinter with alice as owner...');
-    // const batchMinter = await LaosBatchMinter.new(alice);
-    const batchMinter = await LaosBatchMinter.at("0x6E7521c21Bb337D0fF3f555FE362f4CC925f0Ab3");
+    const batchMinter = await LaosBatchMinter.new(alice);
+    // const batchMinter = await LaosBatchMinter.at("0x6E7521c21Bb337D0fF3f555FE362f4CC925f0Ab3");
     console.log('...batchMinter deployed at ', batchMinter.address);
     console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
 
 
-    // console.log('Set owner of precompile to batchMinter...');
-    // await precompileContract.transferOwnership(batchMinter.address);
-    // console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
+    console.log('Set owner of precompile to batchMinter...');
+    await precompileContract.transferOwnership(batchMinter.address);
+    console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
 
-    // console.log('SetPrecompileAddress of batchMinter to newly created collection...');
-    // await batchMinter.setPrecompileAddress(newCollectionAddress);
+    console.log('SetPrecompileAddress of batchMinter to newly created collection...');
+    await batchMinter.setPrecompileAddress(newCollectionAddress);
     console.log('...precompile address matches created collection precompile?...',  newCollectionAddress == await batchMinter.precompileAddress());
 
     console.log('Precompile owner can be queried via batchMinter and matches direct query? ', await precompileContract.owner() === batchMinter.address);
-    // toni
 
     console.log('Alice can batch mint using the batchMinter...');
     await batchMint(batchMinter, alice, bob);
 
-    console.log('DONE');return;
+    // console.log('DONE');return;
 
     console.log('Alice can mint using the batchMinter...');
     await mint(batchMinter, alice, bob);

@@ -1,27 +1,32 @@
-# A contract to do public minting interacting with LAOS precompiles
+# A contract to do batch minting interacting with LAOS precompiles
 
-Note that evolution remains in sole control of the owner of the publicMinter contract in both cases below.
+Note that all methods remains in sole control of the owner of the batchMinter contract.
 
 ## Contract 1
 
-The contract in `contracts/LaosPublicMinter.sol` simply acts as a proxy for the precompiled contracts except
-for the write methods. It is to be used by:
+The contract in `contracts/LaosBatchMinter.sol` simply acts as a proxy for the precompiled contracts except
+for the batch mint/evolve methods. It is to be used by:
 
-1. Deploying to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
-2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter
-3. Enabling/Disabling publicMinting in the publicMinter contract
+1. Deploying to LAOS, setting the batchMinter owner to the desired EOA address (or multisig)
+2. Setting the owner of a created collection precompile in LAOS to the deployed batchMinter
+3. Enabling/Disabling batchMinting in the batchMinter contract
 
+## Numerology
 
-## Contract 2
+First of all, the TX must be sent with a **maxGas = 13M**. Trying 14M already gives an error.
 
-There is a minimal version of the contract: `contracts/LaosPublicMinterMinimal.sol` which simply does not
-have any enable/disable methods. Transferring the ownership of the precompile to this minimal contract
-automaticall enables public minting. Disabling it can simply be done by then transferring the ownership
-of the precompile to a different EOA addresss.
+With this contraint, as the tests show, the maximum batch mint is approximately:
 
-1. Deploying to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
-2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter, this automatically enables public minting
-3. Setting the owner of the create collection precompile to some other EOA. This automatically disables public minting
+```
+For assets with URI equal to IPFS addresses (47 letters long, such as `ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz`):
+
+...Batch Minting 700 assets with tokenURI of length 53
+...num events produced =  700
+Gas used for minting: 12434864
+Gas used per mint: 17764.091428571428
+```
+
+To get some other references, if all NFTs have URI length = 400, we have a gas per mint = 19186, which gives approx 650 mints.
 
 
 ## Install, compile and test
@@ -44,6 +49,5 @@ SECOND_ACCOUNT_MNEMONIC="3f.......11"
 
 3. Execute script that tests it all:
 ```shell
-$ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract --network sigma
-$ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract_minimal --network sigma
+$ ./node_modules/.bin/truffle exec scripts/test_batch_minting --network sigma
 ```
