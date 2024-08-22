@@ -90,8 +90,8 @@ module.exports = {
         "https://rpc.laossigma.laosfoundation.io"
       ),
       network_id: 62850,
-      gasPrice: 50000000000, // fast = 5000000000, slow = 1000000000
-      gas: 5000000, // sets the max gas
+      gasPrice: 150000000000, // fast = 5000000000, slow = 1000000000
+      gas: 10000000, // sets the max gas
       timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
 
