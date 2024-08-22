@@ -2,7 +2,7 @@
 
 Note that all methods remains in sole control of the owner of the batchMinter contract.
 
-## Contract 1
+## Contract
 
 The contract in `contracts/LaosBatchMinter.sol` simply acts as a proxy for the precompiled contracts except
 for the batch mint/evolve methods. It is to be used by:
@@ -11,7 +11,7 @@ for the batch mint/evolve methods. It is to be used by:
 2. Setting the owner of a created collection precompile in LAOS to the deployed batchMinter
 3. Enabling/Disabling batchMinting in the batchMinter contract
 
-## Numerology
+## Numerology
 
 First of all, the TX must be sent with a **maxGas = 13M**. Trying 14M already gives an error.
 
