@@ -14,14 +14,14 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * specific functions.
  *
  * The initial owner is set to the address provided by the deployer. This can
- * later be changed with {transferPublicMinterOwnership}.
+ * later be changed with {transferBatchMinterOwnership}.
  *
  * This module is used through inheritance. It will make available the modifier
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
 abstract contract Ownable is Context {
-    address private _publicMinterOwner;
+    address private _batchMinterOwner;
 
     /**
      * @dev The caller account is not authorized to perform an operation.
@@ -33,7 +33,7 @@ abstract contract Ownable is Context {
      */
     error OwnableInvalidOwner(address owner);
 
-    event PublicMinterOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event BatchMinterOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
      * @dev Initializes the contract setting the address provided by the deployer as the initial owner.
@@ -56,15 +56,15 @@ abstract contract Ownable is Context {
     /**
      * @dev Returns the address of the current owner.
      */
-    function publicMinterOwner() public view virtual returns (address) {
-        return _publicMinterOwner;
+    function batchMinterOwner() public view virtual returns (address) {
+        return _batchMinterOwner;
     }
 
     /**
      * @dev Throws if the sender is not the owner.
      */
     function _checkOwner() internal view virtual {
-        if (publicMinterOwner() != _msgSender()) {
+        if (batchMinterOwner() != _msgSender()) {
             revert OwnableUnauthorizedAccount(_msgSender());
         }
     }
@@ -76,7 +76,7 @@ abstract contract Ownable is Context {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby disabling any functionality that is only available to the owner.
      */
-    function renouncePublicMinterOwnership() public virtual onlyOwner {
+    function renounceBatchMinterOwnership() public virtual onlyOwner {
         _transferOwnership(address(0));
     }
 
@@ -84,7 +84,7 @@ abstract contract Ownable is Context {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferPublicMinterOwnership(address newOwner) public virtual onlyOwner {
+    function transferBatchMinterOwnership(address newOwner) public virtual onlyOwner {
         if (newOwner == address(0)) {
             revert OwnableInvalidOwner(address(0));
         }
@@ -96,8 +96,8 @@ abstract contract Ownable is Context {
      * Internal function without access restriction.
      */
     function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _publicMinterOwner;
-        _publicMinterOwner = newOwner;
-        emit PublicMinterOwnershipTransferred(oldOwner, newOwner);
+        address oldOwner = _batchMinterOwner;
+        _batchMinterOwner = newOwner;
+        emit BatchMinterOwnershipTransferred(oldOwner, newOwner);
     }
 }

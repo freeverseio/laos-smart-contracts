@@ -63,7 +63,7 @@ module.exports = async (callback) => {
     console.log('Deploying batchMinter with alice as owner...');
     const batchMinter = await LaosBatchMinter.new(alice);
     console.log('...batchMinter deployed at ', batchMinter.address);
-    console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.publicMinterOwner());
+    console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
 
     console.log('Set owner of precompile to batchMinter...');
     await precompileContract.transferOwnership(batchMinter.address);
@@ -87,13 +87,13 @@ module.exports = async (callback) => {
     console.log('Alice cannot mint using the precompile neither...');
     await assertReverts(() => mint(precompileContract, alice, bob));
 
-    console.log('alice owns batchMinter?...',  alice == await batchMinter.publicMinterOwner());
+    console.log('alice owns batchMinter?...',  alice == await batchMinter.batchMinterOwner());
 
     console.log('bob cannot transfer batchMinter ownership...');
-    await assertReverts(() => batchMinter.transferPublicMinterOwnership(bob, {from: bob, gas: maxGas}));
+    await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob, gas: maxGas}));
 
     console.log('Alice transfers batchMinter ownership to bob...');
-    await batchMinter.transferPublicMinterOwnership(bob);
+    await batchMinter.transferBatchMinterOwnership(bob);
 
     console.log('PrecompileContract owner has changed as expected?... ', bob === await precompileContract.owner());
 
