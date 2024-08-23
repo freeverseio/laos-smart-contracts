@@ -1,4 +1,4 @@
-# A contract to do batch minting interacting with LAOS precompiles
+# A contract to do batch minting and evolution interacting with LAOS precompiles
 
 Note that all methods remains in sole control of the owner of the batchMinter contract.
 
@@ -7,9 +7,10 @@ Note that all methods remains in sole control of the owner of the batchMinter co
 The contract in `contracts/LaosBatchMinter.sol` simply acts as a proxy for the precompiled contracts except
 for the batch mint/evolve methods. It is to be used by:
 
-1. Deploying to LAOS, setting the batchMinter owner to the desired EOA address (or multisig)
+1. Deploying `batchMinter` to LAOS, setting the batchMinter owner to the desired EOA address (or multisig)
 2. Setting the owner of a created collection precompile in LAOS to the deployed batchMinter
-3. Enabling/Disabling batchMinting in the batchMinter contract
+3. Setting the batchMinter precompileAddress to point to the created collection precompile
+4. Ready to batchMint or batchEvolve
 
 ## Numerology
 
@@ -24,6 +25,12 @@ For assets with URI equal to IPFS addresses (47 letters long, such as `ipfs://Qm
 ...num events produced =  700
 Gas used for minting: 12434864
 Gas used per mint: 17764.091428571428
+
+
+...Batch Evolving 700 times, the asset with tokenId =  32...0364 with tokenURI of length 53
+...num events produced =  700
+Gas used for evolving: 12346908
+Gas used per evolution: 17638.44
 ```
 
 To get some other references, if all NFTs have URI length = 400, we have a gas per mint = 19186, which gives approx 650 mints.
