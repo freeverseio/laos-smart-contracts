@@ -7,9 +7,10 @@ Note that evolution remains in sole control of the owner of the publicMinter con
 The contract in `contracts/LaosPublicMinter.sol` simply acts as a proxy for the precompiled contracts except
 for the write methods. It is to be used by:
 
-1. Deploying to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
+1. Deploying `LaosPublicMinter` to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
 2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter
-3. Enabling/Disabling publicMinting in the publicMinter contract
+3. Setting the precompileAddress of the LaosPublicMinter to the address of the created collection precompile
+4. Enabling/Disabling publicMinting in the publicMinter contract
 
 
 ## Contract 2
@@ -19,9 +20,10 @@ have any enable/disable methods. Transferring the ownership of the precompile to
 automaticall enables public minting. Disabling it can simply be done by then transferring the ownership
 of the precompile to a different EOA addresss.
 
-1. Deploying to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
+1. Deploying `LaosPublicMinter` to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
 2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter, this automatically enables public minting
-3. Setting the owner of the create collection precompile to some other EOA. This automatically disables public minting
+3. Setting the precompileAddress of the LaosPublicMinter to the address of the created collection precompile
+4. Setting the owner of the create collection precompile to some other EOA. This automatically disables public minting
 
 
 ## Install, compile and test
