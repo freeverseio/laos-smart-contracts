@@ -37,6 +37,16 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
         return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, _slot, _tokenURI);
     }
 
+    function evolveWithExternalURIBatch (
+        uint256[] calldata _tokenId,
+        string[] calldata _tokenURI
+    ) external onlyOwner {
+        require(_tokenId.length == _tokenURI.length, "Array lengths must match");
+        for (uint256 i = 0; i < _tokenId.length; i++) {
+            EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId[i], _tokenURI[i]);
+        }
+    }
+
     function evolveWithExternalURI(
         uint256 _tokenId,
         string calldata _tokenURI

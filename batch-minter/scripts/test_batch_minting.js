@@ -57,6 +57,7 @@ async function mint(contract, sender, recipient) {
   console.log('new tokenId = ', tokenId);
   const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
   console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
+  return tokenId;
 }
 
 async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 700) {
@@ -81,6 +82,47 @@ async function batchMint(contract, sender, recipient, uriLen = typicalURILength,
   console.log('first produced tokenId = ', tokenIdLast);
 }
 
+async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 700) {
+  console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
+  const recipients = Array(num).fill(recipient);
+  const randoms = random32bitArray(num);
+  const repeatedString = 'a'.repeat(uriLen);
+  const uris = Array(num).fill(repeatedString);
+
+  const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
+    from: sender,
+    gas: maxGasInBlock,
+  });
+  const nEvents = response.logs.length;
+  console.log('...num events produced = ', nEvents);
+  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
+  console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
+  console.log(`Gas used per mint: ${Number(txReceipt.gasUsed)/num}`);
+  const tokenId0 = response.logs[0].args["_tokenId"].toString();
+  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
+  console.log('first produced tokenId = ', tokenId0);
+  console.log('first produced tokenId = ', tokenIdLast);
+}
+async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 700) {
+  console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
+  const tokenIds = Array(num).fill(tokenId);
+  const repeatedString = 'a'.repeat(uriLen);
+  const uris = Array(num).fill(repeatedString);
+
+  const response = await contract.evolveWithExternalURIBatch(tokenIds, uris, {
+    from: sender,
+    gas: maxGasInBlock,
+  });
+  const nEvents = response.logs.length;
+  console.log('...num events produced = ', nEvents);
+  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
+  console.log(`Gas used for evolving: ${Number(txReceipt.gasUsed)}`);
+  console.log(`Gas used per evolution: ${Number(txReceipt.gasUsed)/num}`);
+  const tokenId0 = response.logs[0].args["_tokenId"].toString();
+  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
+  console.log('first evolved tokenId = ', tokenId0);
+  console.log('first evolved tokenId = ', tokenIdLast);
+}
 
 
 module.exports = async (callback) => {
@@ -104,7 +146,6 @@ module.exports = async (callback) => {
     console.log('...batchMinter deployed at ', batchMinter.address);
     console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
 
-
     console.log('Set owner of precompile to batchMinter...');
     await precompileContract.transferOwnership(batchMinter.address);
     console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
@@ -121,7 +162,10 @@ module.exports = async (callback) => {
     // console.log('DONE');return;
 
     console.log('Alice can mint using the batchMinter...');
-    await mint(batchMinter, alice, bob);
+    const tokenId1 = await mint(batchMinter, alice, bob);
+
+    console.log('Alice can batch evolve using the batchMinter...');
+    await batchEvolve(batchMinter, alice, tokenId1);
 
     console.log('Bob cannot mint using the batchMinter...');
     await assertReverts(() => mint(batchMinter, bob, alice));
@@ -135,7 +179,7 @@ module.exports = async (callback) => {
     console.log('alice owns batchMinter?...',  alice == await batchMinter.batchMinterOwner());
 
     console.log('bob cannot transfer batchMinter ownership...');
-    await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob, gas: maxGas}));
+    await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob}));
 
     console.log('Alice transfers batchMinter ownership to bob...');
     await batchMinter.transferBatchMinterOwnership(bob);
