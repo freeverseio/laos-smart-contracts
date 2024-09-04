@@ -270,54 +270,48 @@ describe("ERC721Universal", function () {
   it("Burned asset cannot be transferred", async function () {
     const tokenId = buildTokenId("111", addr1.address);
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
 
     await expect(
       erc721.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId),
     )
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
-      .withArgs(tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+    .withArgs(tokenId);
 
     await expect(
       erc721.connect(addr1).transferFrom(nullAddress, addr2.address, tokenId),
     )
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
       .withArgs(tokenId);
-  });
+});
 
   it("Burned asset has no owner - query must fail", async function () {
     const tokenId = buildTokenId("111", addr1.address);
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
 
     await expect(
       erc721.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId),
     )
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
       .withArgs(tokenId);
-
-    await expect(erc721.ownerOf(tokenId))
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
-      .withArgs(tokenId);
-  });
+});
 
   it("Burned asset has no tokenURI - query must fail", async function () {
     const tokenId = buildTokenId("111", addr1.address);
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
 
     await expect(
       erc721.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId),
     )
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
       .withArgs(tokenId);
 
-    await expect(erc721.tokenURI(tokenId))
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
-      .withArgs(tokenId);
+    await erc721.tokenURI(tokenId);
   });
 
   it("Owner of the asset cannot transfer to null address via transfer method", async function () {
