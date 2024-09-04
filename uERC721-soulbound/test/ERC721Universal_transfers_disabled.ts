@@ -239,8 +239,8 @@ describe("ERC721Universal", function () {
       .withArgs(addr1.address, addr2.address, true);
 
     await expect(erc721.connect(addr2).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
 
     expect(await erc721.balanceOf(addr1.address)).to.equal(maxBalance);
   });
@@ -250,8 +250,8 @@ describe("ERC721Universal", function () {
     expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
 
     await expect(erc721.connect(addr2).burn(tokenId))
-      .to.be.revertedWithCustomError(erc721, "ERC721InsufficientApproval")
-      .withArgs(addr2.address, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
   });
 
   it("Asset cannot be burned twice", async function () {
@@ -259,11 +259,11 @@ describe("ERC721Universal", function () {
     expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
 
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
 
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
       .withArgs(tokenId);
   });
 
