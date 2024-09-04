@@ -4,13 +4,11 @@ pragma solidity ^0.8.20;
 import "./ERC721Universal.sol";
 
 /**
- * @title Contract for Universal Minting and Evolution of ERC721 tokens
+ * @title Extension of Universal Minting contract to allow for token non-transferrability mode
  * @author Freeverse.io, www.freeverse.io
- * @dev This contract is an extension of the OpenZeppelin ERC721 implementation.
- *  On deploy, this contract allocates 2^96 slots to every possible 160b address,
- *  which are then filled and evolved in the Mint/Evolution consensus system.
- *  The null address is the only address that cannot own any slot; as usual,
- *  it is used as the target address of the transfer executed within the burn method.
+ * @dev On deploy, this contract prevents any transfer (including burns) of tokens
+ *   The owner retains the possibility to enable them
+ *   For permanent non-transferrability, simply transfer the ownership to the null address.
  */
 contract ERC721UniversalSoulbound is ERC721Universal {
 
