@@ -10,7 +10,7 @@ import "./ERC721Universal.sol";
  *   The owner retains the possibility to enable them
  *   For permanent non-transferrability, simply transfer the ownership to the null address.
  */
-contract ERC721UniversalSoulbound is ERC721Universal {
+contract ERC721UniversalTradeLockable is ERC721Universal {
 
     /**
      * @dev Indicates an error related to the fact that the token is non-transferrable (aka soulbound)

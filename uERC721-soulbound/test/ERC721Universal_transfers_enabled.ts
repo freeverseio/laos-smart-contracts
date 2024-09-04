@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 
 import { RevertType } from "../utils/enums.ts";
 
-import { ERC721UniversalSoulbound } from "../typechain-types/contracts/ERC721UniversalSoulbound.js";
+import { ERC721UniversalTradeLockable } from "../typechain-types/contracts/ERC721UniversalTradeLockable.js";
 import { ERC721ReceiverMock } from "../typechain-types/contracts/tests/ERC721ReceiverMock.js";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
@@ -15,7 +15,7 @@ function buildTokenId(slot: string, addr: string) {
   );
 }
 
-describe("ERC721UniversalSoulbound", function () {
+describe("ERC721UniversalTradeLockable", function () {
   const maxBalance = 2n ** 96n;
   const defaultURI = "evochain1/collectionId/";
   const nullAddress = ethers.toBeHex(0, 20);
@@ -24,7 +24,7 @@ describe("ERC721UniversalSoulbound", function () {
   let addr2: HardhatEthersSigner;
   let addr3: HardhatEthersSigner;
 
-  let erc721: ERC721UniversalSoulbound;
+  let erc721: ERC721UniversalTradeLockable;
   let erc721Receiver: ERC721ReceiverMock;
 
   const RECEIVER_MAGIC_VALUE = "0x150b7a02";
@@ -34,7 +34,7 @@ describe("ERC721UniversalSoulbound", function () {
     [addr1, addr2, addr3] = await ethers.getSigners();
 
     const ERC721UniversalFactory = await ethers.getContractFactory(
-      "ERC721UniversalSoulbound",
+      "ERC721UniversalTradeLockable",
     );
     erc721 = await ERC721UniversalFactory.deploy(
       addr1.address,
@@ -451,14 +451,14 @@ describe("ERC721UpdatableBaseURI", function () {
   let addr1: HardhatEthersSigner;
   let addr2: HardhatEthersSigner;
 
-  let erc721: ERC721UniversalSoulbound;
+  let erc721: ERC721UniversalTradeLockable;
 
   // Deploy the contract and prepare accounts
   beforeEach(async function () {
     [addr1, addr2] = await ethers.getSigners();
 
     const ERC721UniversalFactory = await ethers.getContractFactory(
-      "ERC721UniversalSoulbound",
+      "ERC721UniversalTradeLockable",
     );
     erc721 = await ERC721UniversalFactory.deploy(
       addr1.address,
@@ -573,14 +573,14 @@ describe("ERC721Broadcast", function () {
   let addr1: HardhatEthersSigner;
   let addr2: HardhatEthersSigner;
 
-  let erc721: ERC721UniversalSoulbound;
+  let erc721: ERC721UniversalTradeLockable;
 
   // Deploy the contract and prepare accounts
   beforeEach(async function () {
     [addr1, addr2] = await ethers.getSigners();
 
     const ERC721UniversalFactory = await ethers.getContractFactory(
-      "ERC721UniversalSoulbound",
+      "ERC721UniversalTradeLockable",
     );
     erc721 = await ERC721UniversalFactory.deploy(
       addr1.address,
