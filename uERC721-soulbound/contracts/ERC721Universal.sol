@@ -23,14 +23,6 @@ contract ERC721Universal is
     ERC721,
     Ownable
 {
-
-    /**
-     * @dev Indicates an error related to the fact that the token is non-transferrable (aka soulbound)
-     * @param tokenId The id of the token
-     */
-    error ERC721TokenNonTrasferrable(uint256 tokenId);
-
-
     /// @inheritdoc IERC721Universal
     uint32 public constant ERC721UniversalVersion = 2;
 
@@ -47,9 +39,6 @@ contract ERC721Universal is
     string private TOKENID_PRE = "GeneralKey(";
     string private TOKENID_POST = ")";
 
-    // controls if the tokens are soulbound (non-transferrable)
-    bool public areTransfersEnabled;
-
     modifier baseURINotLocked {
         if (isBaseURILocked) revert BaseURIAlreadyLocked();
         _;
@@ -63,16 +52,6 @@ contract ERC721Universal is
     ) ERC721(name_, symbol_) Ownable(owner_) {
         _baseURIStorage = baseURI_;
         emit NewERC721Universal(address(this), baseURI_);
-    }
-
-    // Enables the transfer of tokens in this contract
-    function enableTransfers() external onlyOwner {
-        areTransfersEnabled = true;
-    }
-
-    // Disables the transfer of tokens in this contract
-    function disableTransfers() external onlyOwner {
-        areTransfersEnabled = false;
     }
 
     /// @inheritdoc IERC721UpdatableBaseURI
@@ -117,15 +96,6 @@ contract ERC721Universal is
     /// @inheritdoc IERC721Broadcast
     function broadcastSelfTransfer(uint256 tokenId) external {
         _broadcast(tokenId, initOwner(tokenId));
-    }
-
-    /// Prevents any transfer unless areTransfersEnabled = true.
-    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
-        if (areTransfersEnabled) {
-            return super._update(to, tokenId, auth);
-        } else {
-            revert ERC721TokenNonTrasferrable(tokenId);
-        }
     }
 
     /// @inheritdoc IERC721Broadcast
