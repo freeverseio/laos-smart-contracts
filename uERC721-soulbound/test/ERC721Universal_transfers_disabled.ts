@@ -43,7 +43,6 @@ describe("ERC721Universal", function () {
       defaultURI,
     );
     await erc721.waitForDeployment();
-    await erc721.enableTransfers();
   });
 
   it("Should report correct version of the uERC721 interface", async function () {
@@ -220,14 +219,12 @@ describe("ERC721Universal", function () {
     expect(await erc721.isBurned(tokenId)).to.equal(false);
 
     await expect(erc721.connect(addr1).burn(tokenId))
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, nullAddress, tokenId);
-
-    expect(await erc721.isBurned(tokenId)).to.equal(true);
-
-    await expect(erc721.ownerOf(tokenId))
-      .to.be.revertedWithCustomError(erc721, "ERC721NonexistentToken")
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
       .withArgs(tokenId);
+
+    expect(await erc721.isBurned(tokenId)).to.equal(false);
+
+    expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
 
     expect(await erc721.balanceOf(addr1.address)).to.equal(maxBalance);
   });
