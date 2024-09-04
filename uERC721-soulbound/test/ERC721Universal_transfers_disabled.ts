@@ -192,9 +192,9 @@ describe("ERC721Universal", function () {
     await expect(
       erc721.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId),
     )
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, addr2.address, tokenId);
-    expect(await erc721.ownerOf(tokenId)).to.equal(addr2.address);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
+    expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
 
     expect(await erc721.balanceOf(addr1.address)).to.equal(maxBalance);
     expect(await erc721.balanceOf(addr2.address)).to.equal(maxBalance);
@@ -202,9 +202,9 @@ describe("ERC721Universal", function () {
     await expect(
       erc721.connect(addr2).transferFrom(addr2.address, addr3.address, tokenId),
     )
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr2.address, addr3.address, tokenId);
-    expect(await erc721.ownerOf(tokenId)).to.equal(addr3.address);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
+    expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
 
     expect(await erc721.balanceOf(addr2.address)).to.equal(maxBalance);
     expect(await erc721.balanceOf(addr3.address)).to.equal(maxBalance);
@@ -332,8 +332,8 @@ describe("ERC721Universal", function () {
     await expect(
       erc721.connect(addr2).transferFrom(addr2.address, addr1.address, tokenId),
     )
-      .to.be.revertedWithCustomError(erc721, "ERC721InsufficientApproval")
-      .withArgs(addr2.address, tokenId);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
   });
 
   it("Owner of the asset should be able to do safe transfer of asset", async function () {
@@ -354,9 +354,10 @@ describe("ERC721Universal", function () {
         .connect(addr1)
         .safeTransferFrom(addr1.address, receiverContractAddress, tokenId),
     )
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, receiverContractAddress, tokenId);
-    expect(await erc721.ownerOf(tokenId)).to.equal(receiverContractAddress);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
+
+    expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
   });
 
   it("Owner of the asset should be able to do safe transfer of asset with data", async function () {
@@ -383,9 +384,9 @@ describe("ERC721Universal", function () {
           { gasLimit: 300000 },
         ),
     )
-      .to.emit(erc721, "Transfer")
-      .withArgs(addr1.address, receiverContractAddress, tokenId);
-    expect(await erc721.ownerOf(tokenId)).to.equal(receiverContractAddress);
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
+    expect(await erc721.ownerOf(tokenId)).to.equal(addr1.address);
   });
 
   it("When Owner of the asset does safe transfer the receiver contract reverts on call", async function () {
@@ -405,7 +406,9 @@ describe("ERC721Universal", function () {
       erc721
         .connect(addr1)
         .safeTransferFrom(addr1.address, receiverContractAddress, tokenId),
-    ).to.be.revertedWith("ERC721ReceiverMock: reverting");
+    )
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
   });
 
   it("When Owner of the asset does safe transfer with data the receiver contract reverts on call", async function () {
@@ -431,7 +434,9 @@ describe("ERC721Universal", function () {
           "0x43",
           { gasLimit: 300000 },
         ),
-    ).to.be.revertedWith("ERC721ReceiverMock: reverting");
+    )
+      .to.be.revertedWithCustomError(erc721, "ERC721TokenNonTrasferrable")
+      .withArgs(tokenId);
   });
 });
 
