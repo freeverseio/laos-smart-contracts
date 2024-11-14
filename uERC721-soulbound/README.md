@@ -1,6 +1,7 @@
 # ERC721UniversalSoulbound Template Contract
 
 This repository contains a Solidity ERC721 template contract that minimally extends the [uERC721 contract](https://github.com/freeverseio/laos-erc721) to allow for non-transfereability of tokens.
+This repository is experimental, use at your own risk.
 
 The two main contracts are:
 

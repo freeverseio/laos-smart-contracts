@@ -4,7 +4,7 @@ const LaosPublicMinter = artifacts.require("LaosPublicMinter");
 const truffleAssert = require('truffle-assertions');
 
 const createCollectionAddress = "0x0000000000000000000000000000000000000403";
-const maxGas = 5000000;
+const maxGas = 10000000;
 
 async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
   let attempts = 0;
@@ -37,9 +37,9 @@ function random32bit() {
 }
 
 async function mint(contract, sender, recipient) {
+  console.log('Minting from ', sender, ' to ', recipient);
   const response = await contract.mintWithExternalURI(recipient, random32bit(), 'dummyURI', {
     from: sender,
-    gas: maxGas,
   });
   truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
   const tokenId = response.logs[0].args["_tokenId"].toString();
@@ -50,6 +50,10 @@ module.exports = async (callback) => {
   try {
     const [alice, bob] = await web3.eth.getAccounts();
 
+    console.log('Querying Alice balance...');
+    const aliceBalance = await web3.eth.getBalance(alice);
+    console.log('Alice\'s balance:', web3.utils.fromWei(aliceBalance, 'ether'), 'ETH');
+    
     console.log('connecting to createCollection precompile...');
     const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 

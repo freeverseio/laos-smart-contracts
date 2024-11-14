@@ -1,6 +1,7 @@
 # A contract to do batch minting and evolution interacting with LAOS precompiles
 
 Note that all methods remains in sole control of the owner of the batchMinter contract.
+This repository is experimental, use at your own risk.
 
 ## Contract
 

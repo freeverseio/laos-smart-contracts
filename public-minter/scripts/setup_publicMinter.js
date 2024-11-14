@@ -1,11 +1,13 @@
 const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosPublicMinter = artifacts.require("LaosPublicMinterMinimal");
 const truffleAssert = require('truffle-assertions');
+const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory");
 
 // This script configures and existing precompile collection to be owned by a LAOSPublicMinterMinimal contract
 // polgygon = 0xfffffffffffffffffffffffe000000000000000d, ethereum = 0xfffffffffffffffffffffffe000000000000000e
-const existingCollectionAddress = "0xfffffffffffffffffffffffe000000000000000d";
+// const existingCollectionAddress = "0xfffffffffffffffffffffffe000000000000000d";
 const maxGas = 5000000;
+const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 
 function random32bit() {
   return Math.floor(Math.random() * Math.pow(2, 32));
@@ -25,9 +27,18 @@ module.exports = async (callback) => {
   try {
     // Alice must be the owner of the current precompile collection
     const [alice, bob] = await web3.eth.getAccounts();
+    console.log('Alice, Bob = ', alice);
 
-    console.log('Connecting to precompile at address: ', existingCollectionAddress);
-    const precompileContract = await EvolutionCollection.at(existingCollectionAddress);
+    console.log('connecting to createCollection precompile...');
+    const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
+
+    console.log('creating a collection with owner = alice...');
+    const response = await createCollectionContract.createCollection(alice);
+    const newCollectionAddress = response.logs[0].args["_collectionAddress"];
+    console.log('newCollectionAddress at ', newCollectionAddress);
+    const precompileContract = await EvolutionCollection.at(newCollectionAddress);
+    console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
+
     console.log('...owner of precompile: ', await precompileContract.owner());
     console.log('...precompileContract owner is alice?... ', alice === await precompileContract.owner());
 

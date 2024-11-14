@@ -7,6 +7,7 @@ async function main() {
 
   const accounts = await ethers.getSigners();
   console.log("Deploying contracts with the account:", accounts[0].address);
+  console.log("Balance of deploying account:", (await ethers.provider.getBalance(accounts[0].address)).toString());
 
   const ContractFactory = await ethers.getContractFactory(
     "ERC721UniversalSoulbound",
