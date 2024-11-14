@@ -42,6 +42,14 @@ const config: HardhatUserConfig = {
       accounts: [`0x${privateKey}`],
     },
 
+    zombienet: {
+      url: 'http://127.0.0.1:9999/', // URL of your custom network
+      chainId: 667, // The Chain ID of your custom network
+      gas: 5000000, // Gas settings
+      gasPrice: 15000000, // Gas price settings
+      accounts: [`0x${privateKey}`],
+    },
+
     ethMainnet: {
       url: 'https://eth.llamarpc.com/', // URL of your custom network
       chainId: 1, // The Chain ID of your custom network

@@ -1,6 +1,7 @@
 # A contract to do public minting interacting with LAOS precompiles
 
 Note that evolution remains in sole control of the owner of the publicMinter contract in both cases below.
+This repository is experimental, use at your own risk.
 
 ## Contract 1
 
