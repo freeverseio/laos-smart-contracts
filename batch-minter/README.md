@@ -57,5 +57,5 @@ SECOND_ACCOUNT_MNEMONIC="3f.......11"
 
 3. Execute script that tests it all:
 ```shell
-$ ./node_modules/.bin/truffle exec scripts/test_batch_minting --network sigma
+$ ./node_modules/.bin/truffle exec scripts/test_batch_minting.js --network sigma
 ```
