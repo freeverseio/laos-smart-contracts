@@ -129,6 +129,9 @@ module.exports = async (callback) => {
   try {
     const [alice, bob] = await web3.eth.getAccounts();
 
+    const balance = await web3.eth.getBalance(alice);
+    console.log(`Deployer is ${alice} and has balance (in wei):`, balance.toString());
+
     console.log('Connecting to createCollection precompile...');
     const createCollectionContract = await EvolutionCollectionFactory.at(createCollectionAddress);
 
@@ -159,7 +162,8 @@ module.exports = async (callback) => {
     console.log('Alice can batch mint using the batchMinter...');
     await batchMint(batchMinter, alice, bob);
 
-    // console.log('DONE');return;
+    console.log('DONE');
+    callback();
 
     console.log('Alice can mint using the batchMinter...');
     const tokenId1 = await mint(batchMinter, alice, bob);
