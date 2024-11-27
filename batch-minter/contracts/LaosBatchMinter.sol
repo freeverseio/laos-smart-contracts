@@ -9,6 +9,8 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
 
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
+    uint96 private counter;
+
 
     /// @notice Event emitted on deploy of a new BathMinter contract
     /// @param _owner the owner of the newly created BathMinter
@@ -62,6 +64,11 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
         string calldata _tokenURI
     ) external onlyOwner {
          EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId, _tokenURI);
+    }
+
+    function mintTo (address _to, string memory _tokenURI) public onlyOwner returns (uint256 _tokenId) {
+        counter++;
+        return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, counter, _tokenURI);
     }
 
     function transferOwnership(address _newOwner) external onlyOwner {
