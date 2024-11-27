@@ -10,8 +10,14 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
 
+    /// @notice Event emitted on deploy of a new BathMinter contract
+    /// @param _owner the owner of the newly created BathMinter
+    /// @param _precompileAddress the address of the newly created underlying precompiled collection address
+    event NewBathMinter(address indexed _owner, address _precompileAddress);
+
     constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
+        emit NewBathMinter(_ownerOfPublicMinter, precompileAddress);
     }
 
     function setPrecompileAddress(address _newAddress) public onlyOwner {
