@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
 
 contract LaosBatchMinter is Ownable, EvolutionCollection {
 
+    address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
 
-    constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {}
+    constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
+        precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
+    }
 
     function setPrecompileAddress(address _newAddress) public onlyOwner {
         precompileAddress = _newAddress;
