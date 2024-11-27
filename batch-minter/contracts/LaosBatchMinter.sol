@@ -7,6 +7,8 @@ import "./Ownable.sol";
 contract LaosBatchMinter is Ownable, EvolutionCollection {
 
     address public precompileAddress;
+    uint96 private counter;
+
 
     constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {}
 
@@ -52,6 +54,11 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
         string calldata _tokenURI
     ) external onlyOwner {
          EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId, _tokenURI);
+    }
+
+    function mintTo (address _to, string memory _tokenURI) public onlyOwner returns (uint256 _tokenId) {
+        counter++;
+        return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, counter, _tokenURI);
     }
 
     function transferOwnership(address _newOwner) external onlyOwner {
