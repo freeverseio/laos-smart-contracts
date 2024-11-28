@@ -12,19 +12,19 @@ import "./Ownable.sol";
 
 contract LaosBatchMinter is Ownable, EvolutionCollection {
 
+    /**
+     * @dev Emitted on deploy of a new BatchMinter contract
+     * @param _owner the owner of the newly created BatchMinter
+     * @param _precompileAddress the address of the newly created underlying precompiled collection address
+     */
+    event NewBatchMinter(address indexed _owner, address _precompileAddress);
+
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
 
-    /**
-     * @dev Emitted on deploy of a new BathMinter contract
-     * @param _owner the owner of the newly created BathMinter
-     * @param _precompileAddress the address of the newly created underlying precompiled collection address
-     */
-    event NewBathMinter(address indexed _owner, address _precompileAddress);
-
     constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
-        emit NewBathMinter(_ownerOfPublicMinter, precompileAddress);
+        emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
     }
 
     /**
