@@ -1,9 +1,7 @@
-const EvolutionCollectionFactory = artifacts.require("EvolutionCollectionFactory");
 const EvolutionCollection = artifacts.require("EvolutionCollection");
 const LaosBatchMinter = artifacts.require("LaosBatchMinter");
 const truffleAssert = require('truffle-assertions');
 
-const createCollectionAddress = "0x0000000000000000000000000000000000000403";
 const maxGas = 5000000;
 const maxGasInBlock = 13000000; // if we set it to 14M it fails
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
