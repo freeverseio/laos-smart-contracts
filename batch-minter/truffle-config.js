@@ -1,5 +1,8 @@
 require('dotenv').config();
 const HDWalletProvider = require("@truffle/hdwallet-provider");
+// const Web3 = require('web3'); // Import Web3
+// const web3 = new Web3();      // Initialize Web3 instance
+
 /**
  * Use this file to configure your truffle project. It's seeded with some
  * common settings for different networks and features like migrations,
@@ -90,11 +93,28 @@ module.exports = {
         "https://rpc.laossigma.laosfoundation.io"
       ),
       network_id: 62850,
+      // maxPriorityFeePerGas: web3.utils.toWei('1.5', 'gwei'),
+      // maxFeePerGas:  web3.utils.toWei('2.5', 'gwei'),
       gasPrice: 150000000000, // fast = 5000000000, slow = 1000000000
       gas: 10000000, // sets the max gas
       timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
 
+    venus: {
+      provider: new HDWalletProvider(
+        [
+          process.env.DEPLOYER_MNEMONIC,
+          process.env.SECOND_ACCOUNT_MNEMONIC
+        ],
+        "https://rpc.laosvenus.gorengine.com"
+      ),
+      network_id: 6680,
+      // maxPriorityFeePerGas: web3.utils.toWei('1.5', 'gwei'),
+      // maxFeePerGas:  web3.utils.toWei('2.5', 'gwei'),
+      gasPrice: 150000000000, // fast = 5000000000, slow = 1000000000
+      gas: 10000000, // sets the max gas
+      timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
+    },
     laos: {
       provider: new HDWalletProvider(
         [
