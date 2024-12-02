@@ -4,13 +4,20 @@ pragma solidity >=0.8.3;
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 /**
  * @title Simple contract enabling batch minting and evolution
- * @notice Developed and maintained by the LAOS Team and Freeverse.
+ * @dev Includes all ERC721 code, but reverts on any type of transfer
  */
 
-contract LaosBatchMinter is Ownable, EvolutionCollection {
+contract LaosBatchMinter721 is Ownable, EvolutionCollection, ERC721 {
+
+    /**
+     * @dev Indicates an error related to the fact that the token is non-transferrable (aka soulbound)
+     * @param tokenId The id of the token
+     */
+    error ERC721TokenNonTrasferrable(uint256 tokenId);
 
     /**
      * @dev Emitted on deploy of a new BatchMinter contract
@@ -21,8 +28,9 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
 
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
+    uint96 private counter;
 
-    constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
+    constructor(address _ownerOfPublicMinter) ERC721("name", "symbol") Ownable(_ownerOfPublicMinter) {
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
         emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
     }
@@ -33,6 +41,11 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
      */
     function setPrecompileAddress(address _newAddress) public onlyOwner {
         precompileAddress = _newAddress;
+    }
+
+    function mintTo (address _to, string memory _tokenURI) public onlyOwner returns (uint256 _tokenId) {
+        counter++;
+        return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, counter, _tokenURI);
     }
 
     /**
@@ -115,7 +128,14 @@ contract LaosBatchMinter is Ownable, EvolutionCollection {
     /**
      * @dev Returns the tokenURI of the provided tokenId
      */
-    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+    function tokenURI(uint256 _tokenId) public view override(ERC721, EvolutionCollection) returns (string memory) {
         return EvolutionCollection(precompileAddress).tokenURI(_tokenId);
+    }
+
+    /**
+     * @dev Makes any transfer revert
+     */    
+    function _update(address to, uint256 tokenId, address auth) internal view override returns (address) {
+        revert ERC721TokenNonTrasferrable(tokenId);
     }
 }
