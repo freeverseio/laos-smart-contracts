@@ -57,6 +57,13 @@ const config: HardhatUserConfig = {
       gasPrice: 'auto', // Gas price settings
       accounts: [`0x${privateKey}`],
     },
+    venus: {
+      url: 'https://rpc.laosvenus.gorengine.com', // URL of your custom network
+      chainId: 6680, // The Chain ID of your custom network
+      gas: 'auto', // Gas settings
+      gasPrice: 'auto', // Gas price settings
+      accounts: [`0x${privateKey}`],
+    },
   },
 
   etherscan: {
