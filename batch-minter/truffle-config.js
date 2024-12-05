@@ -99,6 +99,7 @@ module.exports = {
       gas: 10000000, // sets the max gas
       timeoutBlocks: 5000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
+
     venus: {
       provider: new HDWalletProvider(
         [
