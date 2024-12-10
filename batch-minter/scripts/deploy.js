@@ -9,7 +9,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const owner = deployer.address; // set your choice of owner
 
-  console.log(`Deploying with account ${owner}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
+  console.log(`Deploying with account ${deployer.address}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
 
   const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
   const batchMinter = await LaosBatchMinter.deploy(owner);
