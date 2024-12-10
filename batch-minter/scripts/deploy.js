@@ -14,7 +14,7 @@ async function main() {
   const batchMinter = await LaosBatchMinter.deploy(deployer.address);
   await batchMinter.waitForDeployment();
 
-  console.log("...batchMinter deployed at", await batchMinter.address());
+  console.log("...batchMinter deployed at", await batchMinter.getAddress());
 
   const batchMinterOwner = await batchMinter.batchMinterOwner();
   console.log("...batchMinter expected owner?", owner === batchMinterOwner);
@@ -36,10 +36,7 @@ async function main() {
   );
 }
 
-// Execute the script
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
