@@ -47,15 +47,10 @@ function random32bitArray(n) {
 
 async function mint(contract, sender, recipient) {
   const repeatedString = 'a'.repeat(typicalURILength);
-  const response = await contract.mintWithExternalURI(recipient, random32bit(), repeatedString, {
-    from: sender,
-    gas: maxGas,
-  });
-  truffleAssert.eventEmitted(response, 'MintedWithExternalURI');
-  const tokenId = response.logs[0].args["_tokenId"].toString();
+  const tx = await contract.mintWithExternalURI(recipient, random32bit(), repeatedString, {from: sender});
+  const receipt = await tx.wait();
+  const tokenId = receipt.logs[0].args[2].toString();
   console.log('new tokenId = ', tokenId);
-  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
-  console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
   return tokenId;
 }
 
@@ -78,7 +73,7 @@ async function batchMint(contract, sender, recipient, uriLen = typicalURILength,
   console.log("Last produced tokenId = ", tokenIdLast);
 }
 
-async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 700) {
+async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
   const tokenIds = Array(num).fill(tokenId);
   const repeatedString = 'a'.repeat(uriLen);
@@ -121,10 +116,8 @@ async function main() {
   console.log('Deployer can batch mint using the batchMinter...');
   await batchMint(batchMinter, deployer, bob);
 
-  console.log('DONE');return;
-
-  // console.log('Alice can mint using the batchMinter...');
-  // const tokenId1 = await mint(batchMinter, alice, bob);
+  console.log('batchMinter can mint 1 single asset using the batchMinter...');
+  const tokenId1 = await mint(batchMinter, deployer, bob);
 
   // console.log('Alice can batch evolve using the batchMinter...');
   // await batchEvolve(batchMinter, alice, tokenId1);
