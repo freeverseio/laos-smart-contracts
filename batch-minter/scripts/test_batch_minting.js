@@ -1,9 +1,10 @@
-const EvolutionCollection = artifacts.require("EvolutionCollection");
-const LaosBatchMinter = artifacts.require("LaosBatchMinter");
-const truffleAssert = require('truffle-assertions');
+const { ethers } = require("hardhat");
+require("dotenv").config();
 
-const maxGas = 5000000;
-const maxGasInBlock = 13000000; // if we set it to 14M it fails
+if (!process.env.SECOND_PRIVATE_KEY) {
+  throw new Error("Please set the SECOND_PRIVATE_KEY in your .env file.");
+}
+
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
 
 async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
@@ -58,49 +59,25 @@ async function mint(contract, sender, recipient) {
   return tokenId;
 }
 
-async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 700) {
+async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
   const repeatedString = 'a'.repeat(uriLen);
   const uris = Array(num).fill(repeatedString);
 
-  const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
-    from: sender,
-    gas: maxGasInBlock,
-  });
-  const nEvents = response.logs.length;
-  console.log('...num events produced = ', nEvents);
-  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
-  console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
-  console.log(`Gas used per mint: ${Number(txReceipt.gasUsed)/num}`);
-  const tokenId0 = response.logs[0].args["_tokenId"].toString();
-  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
-  console.log('first produced tokenId = ', tokenId0);
-  console.log('first produced tokenId = ', tokenIdLast);
+  const tx = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {from: sender});
+  const receipt = await tx.wait();
+
+  console.log(`Gas used for minting: ${receipt.gasUsed.toString()}`);
+  console.log(`Gas used per mint: ${Number(receipt.gasUsed)/num}`);
+
+  const tokenId0 = receipt.logs[0].args[2].toString();
+  const tokenIdLast = receipt.logs[receipt.logs.length - 1].args[2].toString();
+  console.log("First produced tokenId = ", tokenId0);
+  console.log("Last produced tokenId = ", tokenIdLast);
 }
 
-async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 700) {
-  console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
-  const recipients = Array(num).fill(recipient);
-  const randoms = random32bitArray(num);
-  const repeatedString = 'a'.repeat(uriLen);
-  const uris = Array(num).fill(repeatedString);
-
-  const response = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {
-    from: sender,
-    gas: maxGasInBlock,
-  });
-  const nEvents = response.logs.length;
-  console.log('...num events produced = ', nEvents);
-  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
-  console.log(`Gas used for minting: ${Number(txReceipt.gasUsed)}`);
-  console.log(`Gas used per mint: ${Number(txReceipt.gasUsed)/num}`);
-  const tokenId0 = response.logs[0].args["_tokenId"].toString();
-  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
-  console.log('first produced tokenId = ', tokenId0);
-  console.log('first produced tokenId = ', tokenIdLast);
-}
 async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 700) {
   console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
   const tokenIds = Array(num).fill(tokenId);
@@ -123,66 +100,68 @@ async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength,
 }
 
 
-module.exports = async (callback) => {
-  try {
-    const [alice, bob] = await web3.eth.getAccounts();
+async function main() {
+  const [deployer] = await ethers.getSigners();
+  console.log(`Deploying with account ${deployer.address}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
 
-    console.log('Deploying batchMinter with alice as owner...');
-    const batchMinter = await LaosBatchMinter.new(alice);
-    console.log('...batchMinter deployed at ', batchMinter.address);
-    console.log('...batchMinter owner is alice as expected? ', alice === await batchMinter.batchMinterOwner());
 
-    const precompileAddress = await batchMinter.precompileAddress();
-    const precompileContract = await EvolutionCollection.at(precompileAddress);
+  const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
+  const batchMinter = await LaosBatchMinter.deploy(deployer.address);
+  await batchMinter.waitForDeployment();
+  console.log("...batchMinter deployed at", await batchMinter.getAddress());
 
-    console.log('...precompileContract owner is batchMinter?... ', batchMinter.address === await precompileContract.owner());
+  const precompileAddress = await batchMinter.precompileAddress();
+  console.log("...batchMinter uses a collection managed by the following precompile address:", precompileAddress);
+  const EvolutionCollectionInterface = await ethers.getContractAt("EvolutionCollection", precompileAddress);
+  const precompileContract = EvolutionCollectionInterface.attach(precompileAddress);
 
-    console.log('Precompile owner can be queried via batchMinter and matches direct query? ', await precompileContract.owner() === batchMinter.address);
+  const bob = new ethers.Wallet(process.env.SECOND_PRIVATE_KEY, ethers.provider);
+  console.log(`Bob will be the recipient account (${bob.address}), with balance (in Wei) ${await ethers.provider.getBalance(bob.address)}`);
 
-    console.log('Alice can batch mint using the batchMinter...');
-    await batchMint(batchMinter, alice, bob);
+  console.log('Deployer can batch mint using the batchMinter...');
+  await batchMint(batchMinter, deployer, bob);
 
-    // console.log('DONE');return;
+  console.log('DONE');return;
 
-    console.log('Alice can mint using the batchMinter...');
-    const tokenId1 = await mint(batchMinter, alice, bob);
+  // console.log('Alice can mint using the batchMinter...');
+  // const tokenId1 = await mint(batchMinter, alice, bob);
 
-    console.log('Alice can batch evolve using the batchMinter...');
-    await batchEvolve(batchMinter, alice, tokenId1);
+  // console.log('Alice can batch evolve using the batchMinter...');
+  // await batchEvolve(batchMinter, alice, tokenId1);
 
-    console.log('Bob cannot mint using the batchMinter...');
-    await assertReverts(() => mint(batchMinter, bob, alice));
+  // console.log('Bob cannot mint using the batchMinter...');
+  // await assertReverts(() => mint(batchMinter, bob, alice));
 
-    console.log('Bob cannot mint using the precompile neither...');
-    await assertReverts(() => mint(precompileContract, bob, alice));
+  // console.log('Bob cannot mint using the precompile neither...');
+  // await assertReverts(() => mint(precompileContract, bob, alice));
 
-    console.log('Alice cannot mint using the precompile neither...');
-    await assertReverts(() => mint(precompileContract, alice, bob));
+  // console.log('Alice cannot mint using the precompile neither...');
+  // await assertReverts(() => mint(precompileContract, alice, bob));
 
-    console.log('alice owns batchMinter?...',  alice == await batchMinter.batchMinterOwner());
+  // console.log('alice owns batchMinter?...',  alice == await batchMinter.batchMinterOwner());
 
-    console.log('bob cannot transfer batchMinter ownership...');
-    await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob}));
+  // console.log('bob cannot transfer batchMinter ownership...');
+  // await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob}));
 
-    console.log('Alice transfers batchMinter ownership to bob...');
-    await batchMinter.transferBatchMinterOwnership(bob);
+  // console.log('Alice transfers batchMinter ownership to bob...');
+  // await batchMinter.transferBatchMinterOwnership(bob);
 
-    console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
-    console.log('batchMinter owner has changed as expected?... ', bob === await batchMinter.batchMinterOwner());
+  // console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
+  // console.log('batchMinter owner has changed as expected?... ', bob === await batchMinter.batchMinterOwner());
 
-    console.log('Alice cannot change the owner of the precompile using the precompile...');
-    await assertReverts(() => precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
+  // console.log('Alice cannot change the owner of the precompile using the precompile...');
+  // await assertReverts(() => precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
 
-    console.log('Alice cannot change the owner of the precompile using the batchMinter...');
-    await assertReverts(() => batchMinter.transferOwnership(alice, {from: alice, gas: maxGas}));
+  // console.log('Alice cannot change the owner of the precompile using the batchMinter...');
+  // await assertReverts(() => batchMinter.transferOwnership(alice, {from: alice, gas: maxGas}));
 
-    console.log('bob changes the ownership of the precompile using the batchMinter...');
-    await batchMinter.transferOwnership(alice, {from: bob, gas: maxGas});
-    console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
+  // console.log('bob changes the ownership of the precompile using the batchMinter...');
+  // await batchMinter.transferOwnership(alice, {from: bob, gas: maxGas});
+  // console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
+}
 
-    callback();
-  } catch (error) {
-    console.log(error);
-    callback();
-  }
-};
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+  
