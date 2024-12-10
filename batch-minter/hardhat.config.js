@@ -21,38 +21,38 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 1337, // Hardhat Network's chain ID
+      chainId: 1337,
     },
 
     laos: {
-      url: 'https://rpc.laos.laosfoundation.io', // URL of your custom network
-      chainId: 6283, // The Chain ID of your custom network
-      gas: 'auto', // Gas settings
-      gasPrice: 'auto', // Gas price settings
+      url: 'https://rpc.laos.laosfoundation.io',
+      chainId: 6283,
+      gas: 'auto',
+      gasPrice: 'auto',
       accounts: [`0x${privateKey}`],
     },
 
     laosTestnet: {
-      url: 'https://rpc.laossigma.laosfoundation.io', // URL of your custom network
-      chainId: 62850, // The Chain ID of your custom network
-      gas: 'auto', // Gas settings
-      gasPrice: 'auto', // Gas price settings
+      url: 'https://rpc.laossigma.laosfoundation.io',
+      chainId: 62850,
+      gas: 'auto',
+      gasPrice: 'auto',
       accounts: [`0x${privateKey}`],
     },
 
     venus: {
-      url: 'https://rpc.laosvenus.gorengine.com', // URL of your custom network
-      chainId: 6680, // The Chain ID of your custom network
-      gas: 'auto', // Gas settings
-      gasPrice: 'auto', // Gas price settings
+      url: 'https://rpc.laosvenus.gorengine.com',
+      chainId: 6680,
+      gas: 'auto',
+      gasPrice: 'auto',
       accounts: [`0x${privateKey}`],
     },
-    
+
     zombienet: {
-      url: 'http://127.0.0.1:9999/', // URL of your custom network
-      chainId: 667, // The Chain ID of your custom network
-      gas: 5000000, // Gas settings
-      gasPrice: 15000000, // Gas price settings
+      url: 'http://127.0.0.1:9999/',
+      chainId: 667,
+      gas: 5000000,
+      gasPrice: 15000000,
       accounts: [`0x${privateKey}`],
     },
   },
