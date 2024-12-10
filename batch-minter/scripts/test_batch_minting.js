@@ -79,21 +79,20 @@ async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength,
   const repeatedString = 'a'.repeat(uriLen);
   const uris = Array(num).fill(repeatedString);
 
-  const response = await contract.evolveWithExternalURIBatch(tokenIds, uris, {
-    from: sender,
-    gas: maxGasInBlock,
-  });
-  const nEvents = response.logs.length;
-  console.log('...num events produced = ', nEvents);
-  const txReceipt = await web3.eth.getTransactionReceipt(response.tx);
-  console.log(`Gas used for evolving: ${Number(txReceipt.gasUsed)}`);
-  console.log(`Gas used per evolution: ${Number(txReceipt.gasUsed)/num}`);
-  const tokenId0 = response.logs[0].args["_tokenId"].toString();
-  const tokenIdLast = response.logs[nEvents-1].args["_tokenId"].toString();
-  console.log('first evolved tokenId = ', tokenId0);
-  console.log('first evolved tokenId = ', tokenIdLast);
-}
+  const tx = await contract.evolveWithExternalURIBatch(tokenIds, uris, {from: sender});
+  const receipt = await tx.wait();
 
+  const nEvents = receipt.logs.length;
+  console.log('...num events produced = ', nEvents);
+
+  console.log(`Gas used for evolving: ${receipt.gasUsed.toString()}`);
+  console.log(`Gas used per evolution: ${Number(receipt.gasUsed)/num}`);
+
+  const tokenId0 = receipt.logs[0].args[0].toString();
+  const tokenIdLast = receipt.logs[receipt.logs.length - 1].args[0].toString();
+  console.log("First evolved tokenId = ", tokenId0);
+  console.log("Last evolved tokenId = ", tokenIdLast);
+}
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -116,11 +115,11 @@ async function main() {
   console.log('Deployer can batch mint using the batchMinter...');
   await batchMint(batchMinter, deployer, bob);
 
-  console.log('batchMinter can mint 1 single asset using the batchMinter...');
+  console.log('Deployer can mint 1 single asset using the batchMinter...');
   const tokenId1 = await mint(batchMinter, deployer, bob);
 
-  // console.log('Alice can batch evolve using the batchMinter...');
-  // await batchEvolve(batchMinter, alice, tokenId1);
+  console.log('Deployer can batch-evolve using the batchMinter...');
+  await batchEvolve(batchMinter, deployer, tokenId1);
 
   // console.log('Bob cannot mint using the batchMinter...');
   // await assertReverts(() => mint(batchMinter, bob, alice));
