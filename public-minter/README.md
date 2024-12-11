@@ -3,50 +3,39 @@
 Note that evolution remains in sole control of the owner of the publicMinter contract in both cases below.
 This repository is experimental, use at your own risk.
 
-## Contract 1
-
-The contract in `contracts/LaosPublicMinter.sol` simply acts as a proxy for the precompiled contracts except
-for the write methods. It is to be used by:
-
-1. Deploying `LaosPublicMinter` to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
-2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter
-3. Setting the precompileAddress of the LaosPublicMinter to the address of the created collection precompile
-4. Enabling/Disabling publicMinting in the publicMinter contract
-
-
-## Contract 2
-
-There is a minimal version of the contract: `contracts/LaosPublicMinterMinimal.sol` which simply does not
-have any enable/disable methods. Transferring the ownership of the precompile to this minimal contract
-automaticall enables public minting. Disabling it can simply be done by then transferring the ownership
-of the precompile to a different EOA addresss.
-
-1. Deploying `LaosPublicMinter` to LAOS, setting the publicMinter owner to the desired EOA address (or multisig)
-2. Setting the owner of a created collection precompile in LAOS to the deployed publicMinter, this automatically enables public minting
-3. Setting the precompileAddress of the LaosPublicMinter to the address of the created collection precompile
-4. Setting the owner of the create collection precompile to some other EOA. This automatically disables public minting
-
-
-## Install, compile and test
-
-The tests are "integration tests" that run directly on LAOS, because we wanted to avoid mocking the logic of the precompile.
+## Install and deploy
 
 1. install and compile:
 ```shell
 npm ci
-./node_modules/.bin/truffle compile
+npx hardhat compile
 ```
 
-2. Create your `.env` file with the private keys of two accounts with enough balance
-
+2. Create your `.env` file with an account with enough balance to deploy:
 ```shell
 $ cat .env
-DEPLOYER_MNEMONIC="62.......8692"
-SECOND_ACCOUNT_MNEMONIC="3f.......11"
+PRIVATE_KEY="62.......8692"
+```
+3. Deploy:
+```shell
+$ npx hardhat run scripts/deploy.js --network laos
 ```
 
-3. Execute script that tests it all:
+## Run end-to-end tests
+
+1. Add a second account to your `.env` file;
 ```shell
-$ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract --network sigma
-$ ./node_modules/.bin/truffle exec scripts/public_minting_via_contract_minimal --network sigma
+$ cat .env
+PRIVATE_KEY="62.......8692"
+SECOND_PRIVATE_KEY="11.......1234"
 ```
+2. Run end-to-end tests:
+```shell
+$ npx hardhat run scripts/test-e2e.js --network laos
+```
+
+## Contract
+
+The contract in `contracts/LaosPublicMinterMinimal.sol` simply acts as a proxy for the precompiled contracts except for the write methods. On deploy, the constructor creates a new collection, using the LAOS precompiled contract. The `PublicMinterMinimal` contract manages the logic to assign permissions to mint and evolve, and it uses the precompile internally when executing mints or evolutions. 
+
+**To disable public minting on the precompile collection, simply transfer its ownership to a different EOA account, or to a different smart contract.**

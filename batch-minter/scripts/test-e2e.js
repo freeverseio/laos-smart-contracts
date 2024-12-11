@@ -4,7 +4,6 @@
 
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
-require("dotenv").config();
 
 if (!process.env.SECOND_PRIVATE_KEY) {
   throw new Error("Please set the SECOND_PRIVATE_KEY in your .env file.");
