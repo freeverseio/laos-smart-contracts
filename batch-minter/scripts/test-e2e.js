@@ -10,6 +10,7 @@ if (!process.env.SECOND_PRIVATE_KEY) {
   throw new Error("Please set the SECOND_PRIVATE_KEY in your .env file.");
 }
 
+const nTXsInBatch = 200;
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
 const dummyString = 'a'.repeat(typicalURILength);
 
@@ -25,7 +26,7 @@ function random32bitArray(n) {
   return Array.from(result);
 }
 
-async function batchMint(contract, recipient, uriLen = typicalURILength, num = 100) {
+async function batchMint(contract, recipient, uriLen = typicalURILength, num = nTXsInBatch) {
   console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
@@ -43,7 +44,7 @@ async function batchMint(contract, recipient, uriLen = typicalURILength, num = 1
   console.log("Last produced tokenId = ", tokenIdLast);
 }
 
-async function batchEvolve(contract, tokenId, uriLen = typicalURILength, num = 100) {
+async function batchEvolve(contract, tokenId, uriLen = typicalURILength, num = nTXsInBatch) {
   console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
   const tokenIds = Array(num).fill(tokenId);
   const uris = Array(num).fill(dummyString);
@@ -66,7 +67,6 @@ async function batchEvolve(contract, tokenId, uriLen = typicalURILength, num = 1
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(`Deploying with account ${deployer.address}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
-
 
   const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
   const batchMinter = await LaosBatchMinter.deploy(deployer.address);
@@ -144,7 +144,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+  console.error("An unexpected error occurred:", error.message);
+  process.exit(1);
 });
   
