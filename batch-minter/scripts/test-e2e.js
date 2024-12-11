@@ -1,3 +1,7 @@
+// This script performs an end-to-end test for the batchMinter contract.
+// It verifies the deployment, ownership transfer, and interactions with the precompile contract.
+// Additionally, it ensures that unauthorized actions are correctly reverted.
+
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
 require("dotenv").config();
@@ -8,32 +12,6 @@ if (!process.env.SECOND_PRIVATE_KEY) {
 
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
 const dummyString = 'a'.repeat(typicalURILength);
-
-async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
-  let attempts = 0;
-
-  while (attempts < retries) {
-    try {
-      console.log(`Attempt ${attempts + 1}...`);
-      await asyncFunc(); // Call the async function
-      console.log('Transaction did not revert, retrying...');
-      attempts++;
-      await new Promise(resolve => setTimeout(resolve, delay)); // Wait before retrying
-    } catch (error) {
-      if (error.message.includes('revert')) {
-        console.log('Transaction reverted as expected.');
-        return;
-      } else {
-        console.log(`Error encountered: ${error.message}`);
-        console.log('Retrying due to a non-revert error...');
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, delay)); // Wait before retrying
-      }
-    }
-  }
-
-  throw new Error('Transaction did not revert after maximum retries');
-}
 
 function random32bit() {
   return Math.floor(Math.random() * Math.pow(2, 32));
@@ -47,13 +25,13 @@ function random32bitArray(n) {
   return Array.from(result);
 }
 
-async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 100) {
+async function batchMint(contract, recipient, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
   const uris = Array(num).fill(dummyString);
 
-  const tx = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {from: sender});
+  const tx = await contract.mintWithExternalURIBatch(recipients, randoms, uris);
   const receipt = await tx.wait();
 
   console.log(`Gas used for minting: ${receipt.gasUsed.toString()}`);
@@ -65,12 +43,12 @@ async function batchMint(contract, sender, recipient, uriLen = typicalURILength,
   console.log("Last produced tokenId = ", tokenIdLast);
 }
 
-async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 100) {
+async function batchEvolve(contract, tokenId, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
   const tokenIds = Array(num).fill(tokenId);
   const uris = Array(num).fill(dummyString);
 
-  const tx = await contract.evolveWithExternalURIBatch(tokenIds, uris, {from: sender});
+  const tx = await contract.evolveWithExternalURIBatch(tokenIds, uris);
   const receipt = await tx.wait();
 
   const nEvents = receipt.logs.length;
@@ -103,7 +81,7 @@ async function main() {
   console.log(`Bob will be the recipient account (${bob.address}), with balance (in Wei) ${await ethers.provider.getBalance(bob.address)}`);
 
   console.log('Deployer can batch mint using the batchMinter...');
-  await batchMint(batchMinter, deployer, bob);
+  await batchMint(batchMinter, bob.address);
 
   console.log('Deployer can mint 1 single asset using the batchMinter...');
   const tx = await batchMinter.mintWithExternalURI(bob.address, random32bit(), dummyString);
@@ -112,7 +90,7 @@ async function main() {
   console.log('...new tokenId = ', tokenId1);
 
   console.log('Deployer can batch-evolve using the batchMinter...');
-  await batchEvolve(batchMinter, deployer, tokenId1);
+  await batchEvolve(batchMinter, tokenId1);
 
   console.log('Bob cannot mint using the batchMinter...');
   const batchMinterWithBob = batchMinter.connect(bob);
@@ -144,7 +122,7 @@ async function main() {
   const tx1 = await batchMinter.transferBatchMinterOwnership(bob.address);
   await tx1.wait();
 
-  console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
+  console.log('PrecompileContract owner remains unchanged as expected?... ', await batchMinter.getAddress() === await precompileContract.owner());
   console.log('batchMinter owner has changed as expected?... ', bob.address === await batchMinter.batchMinterOwner());
 
   console.log('Deployer cannot transfer batchMinter ownership anymore...');
