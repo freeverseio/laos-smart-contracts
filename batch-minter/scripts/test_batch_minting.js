@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat");
+const { expect } = require("chai");
 require("dotenv").config();
 
 if (!process.env.SECOND_PRIVATE_KEY) {
@@ -112,17 +113,42 @@ async function main() {
   const bob = new ethers.Wallet(process.env.SECOND_PRIVATE_KEY, ethers.provider);
   console.log(`Bob will be the recipient account (${bob.address}), with balance (in Wei) ${await ethers.provider.getBalance(bob.address)}`);
 
-  console.log('Deployer can batch mint using the batchMinter...');
-  await batchMint(batchMinter, deployer, bob);
 
-  console.log('Deployer can mint 1 single asset using the batchMinter...');
-  const tokenId1 = await mint(batchMinter, deployer, bob);
+  console.log('Bob cannot mint using the batchMinter...');
+  const batchMinterWithBob = batchMinter.connect(bob);
+  await expect(
+    batchMinterWithBob.mintWithExternalURI(bob.address, 43243, "teeeeest")
+  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
+  .withArgs(bob.address); 
 
-  console.log('Deployer can batch-evolve using the batchMinter...');
-  await batchEvolve(batchMinter, deployer, tokenId1);
+  // try {
+  //   console.log("Attempting to mint...");
+  //   const tx = await batchMinterWithBob.mintWithExternalURI(bob.address, 43243, 'teeeeest', {from: bob});
+  //   await tx.wait();
+  // } catch (error) {
+  //   console.error("Expected failure:", error.message);
+  // }
 
-  // console.log('Bob cannot mint using the batchMinter...');
-  // await assertReverts(() => mint(batchMinter, bob, alice));
+  // console.log('Transferring ownership of batchMinter to bob...');
+  // const tx1 = await batchMinter.transferBatchMinterOwnership(bob.address);
+  // await tx1.wait();
+
+
+
+    // await mint(batchMinter, deployer, deployer.address);
+    // await mint(batchMinter, bob, deployer.address);
+
+    // await assertReverts(() => mint(batchMinter, bob, bob));
+
+  // console.log('Deployer can batch mint using the batchMinter...');
+  // await batchMint(batchMinter, deployer, bob);
+
+  // console.log('Deployer can mint 1 single asset using the batchMinter...');
+  // const tokenId1 = await mint(batchMinter, deployer, bob);
+
+  // console.log('Deployer can batch-evolve using the batchMinter...');
+  // await batchEvolve(batchMinter, deployer, tokenId1);
+
 
   // console.log('Bob cannot mint using the precompile neither...');
   // await assertReverts(() => mint(precompileContract, bob, alice));
