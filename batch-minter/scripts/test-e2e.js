@@ -10,7 +10,7 @@ if (!process.env.SECOND_PRIVATE_KEY) {
   throw new Error("Please set the SECOND_PRIVATE_KEY in your .env file.");
 }
 
-const nTXsInBatch = 200;
+const nTXsInBatch = 700;
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
 const dummyString = 'a'.repeat(typicalURILength);
 
