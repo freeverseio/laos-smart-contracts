@@ -7,6 +7,7 @@ if (!process.env.SECOND_PRIVATE_KEY) {
 }
 
 const typicalURILength = "ipfs://QmQeN4qhzPpG6jVqJoXo2e86eHYPbFpKeUkJcTfrA5hJwz".length; // = 47
+const dummyString = 'a'.repeat(typicalURILength);
 
 async function assertReverts(asyncFunc, retries = 10, delay = 10000) {
   let attempts = 0;
@@ -46,21 +47,11 @@ function random32bitArray(n) {
   return Array.from(result);
 }
 
-async function mint(contract, sender, recipient) {
-  const repeatedString = 'a'.repeat(typicalURILength);
-  const tx = await contract.mintWithExternalURI(recipient, random32bit(), repeatedString, {from: sender});
-  const receipt = await tx.wait();
-  const tokenId = receipt.logs[0].args[2].toString();
-  console.log('new tokenId = ', tokenId);
-  return tokenId;
-}
-
 async function batchMint(contract, sender, recipient, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
   const randoms = random32bitArray(num);
-  const repeatedString = 'a'.repeat(uriLen);
-  const uris = Array(num).fill(repeatedString);
+  const uris = Array(num).fill(dummyString);
 
   const tx = await contract.mintWithExternalURIBatch(recipients, randoms, uris, {from: sender});
   const receipt = await tx.wait();
@@ -77,8 +68,7 @@ async function batchMint(contract, sender, recipient, uriLen = typicalURILength,
 async function batchEvolve(contract, sender, tokenId, uriLen = typicalURILength, num = 100) {
   console.log('...Batch Evolving', num, "times, the asset with tokenId = ", tokenId, "with tokenURI of length", uriLen);
   const tokenIds = Array(num).fill(tokenId);
-  const repeatedString = 'a'.repeat(uriLen);
-  const uris = Array(num).fill(repeatedString);
+  const uris = Array(num).fill(dummyString);
 
   const tx = await contract.evolveWithExternalURIBatch(tokenIds, uris, {from: sender});
   const receipt = await tx.wait();
@@ -113,69 +103,66 @@ async function main() {
   const bob = new ethers.Wallet(process.env.SECOND_PRIVATE_KEY, ethers.provider);
   console.log(`Bob will be the recipient account (${bob.address}), with balance (in Wei) ${await ethers.provider.getBalance(bob.address)}`);
 
-
-  console.log('Bob cannot mint using the batchMinter...');
-  const batchMinterWithBob = batchMinter.connect(bob);
-  await expect(
-    batchMinterWithBob.mintWithExternalURI(bob.address, 43243, "teeeeest")
-  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
-  .withArgs(bob.address); 
-
-  // try {
-  //   console.log("Attempting to mint...");
-  //   const tx = await batchMinterWithBob.mintWithExternalURI(bob.address, 43243, 'teeeeest', {from: bob});
-  //   await tx.wait();
-  // } catch (error) {
-  //   console.error("Expected failure:", error.message);
-  // }
-
-  // console.log('Transferring ownership of batchMinter to bob...');
-  // const tx1 = await batchMinter.transferBatchMinterOwnership(bob.address);
-  // await tx1.wait();
-
-
-
-    // await mint(batchMinter, deployer, deployer.address);
-    // await mint(batchMinter, bob, deployer.address);
-
-    // await assertReverts(() => mint(batchMinter, bob, bob));
-
   // console.log('Deployer can batch mint using the batchMinter...');
   // await batchMint(batchMinter, deployer, bob);
 
   // console.log('Deployer can mint 1 single asset using the batchMinter...');
-  // const tokenId1 = await mint(batchMinter, deployer, bob);
+  // const tx = await batchMinter.mintWithExternalURI(bob.address, random32bit(), dummyString);
+  // const receipt = await tx.wait();
+  // const tokenId1 = receipt.logs[0].args[2].toString();
+  // console.log('...new tokenId = ', tokenId1);
 
   // console.log('Deployer can batch-evolve using the batchMinter...');
   // await batchEvolve(batchMinter, deployer, tokenId1);
 
+  console.log('Bob cannot mint using the batchMinter...');
+  const batchMinterWithBob = batchMinter.connect(bob);
+  await expect(
+    batchMinterWithBob.mintWithExternalURI(bob.address, random32bit(), "teeeeest")
+  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
+  .withArgs(bob.address); 
 
-  // console.log('Bob cannot mint using the precompile neither...');
-  // await assertReverts(() => mint(precompileContract, bob, alice));
+  console.log('Bob cannot mint using the precompile neither...');
+  const precompileWithBob = precompileContract.connect(bob);
+  await expect(
+    precompileWithBob.mintWithExternalURI(bob.address, random32bit(), "teeeeest")
+  ).to.be.reverted; 
 
-  // console.log('Alice cannot mint using the precompile neither...');
-  // await assertReverts(() => mint(precompileContract, alice, bob));
+  console.log('Deployer cannot mint using the precompile neither...');
+  await expect(
+    precompileContract.mintWithExternalURI(bob.address, random32bit(), "teeeeest")
+  ).to.be.reverted; 
 
-  // console.log('alice owns batchMinter?...',  alice == await batchMinter.batchMinterOwner());
+  console.log('Deployer owns batchMinter?...',  deployer.address == await batchMinter.batchMinterOwner());
 
-  // console.log('bob cannot transfer batchMinter ownership...');
-  // await assertReverts(() => batchMinter.transferBatchMinterOwnership(bob, {from: bob}));
+  console.log('Bob cannot transfer batchMinter ownership...');
+  await expect(
+    batchMinterWithBob.transferBatchMinterOwnership(bob.address)
+  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
+  .withArgs(bob.address); 
 
-  // console.log('Alice transfers batchMinter ownership to bob...');
-  // await batchMinter.transferBatchMinterOwnership(bob);
+  console.log('Transferring ownership of batchMinter to bob by deployer...');
+  const tx1 = await batchMinter.transferBatchMinterOwnership(bob.address);
+  await tx1.wait();
 
-  // console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
-  // console.log('batchMinter owner has changed as expected?... ', bob === await batchMinter.batchMinterOwner());
+  console.log('PrecompileContract owner remains unchanged as expected?... ', batchMinter.address === await precompileContract.owner());
+  console.log('batchMinter owner has changed as expected?... ', bob.address === await batchMinter.batchMinterOwner());
 
-  // console.log('Alice cannot change the owner of the precompile using the precompile...');
-  // await assertReverts(() => precompileContract.transferOwnership(alice, {from: alice, gas: maxGas}));
+  console.log('Deployer cannot transfer batchMinter ownership anymore...');
+  await expect(
+    batchMinter.transferBatchMinterOwnership(deployer.address)
+  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
+  .withArgs(deployer.address); 
 
-  // console.log('Alice cannot change the owner of the precompile using the batchMinter...');
-  // await assertReverts(() => batchMinter.transferOwnership(alice, {from: alice, gas: maxGas}));
+  console.log('Deployer cannot change the owner of the precompile using the batchMinter...');
+  await expect(
+    batchMinter.transferOwnership(deployer.address)
+  ).to.be.revertedWithCustomError(batchMinterWithBob, "OwnableUnauthorizedAccount")
+  .withArgs(deployer.address); 
 
-  // console.log('bob changes the ownership of the precompile using the batchMinter...');
-  // await batchMinter.transferOwnership(alice, {from: bob, gas: maxGas});
-  // console.log('precompileContract owner is alice?... ', alice === await precompileContract.owner());
+  console.log('Bob can change the ownership of the precompile using the batchMinter...');
+  await batchMinterWithBob.transferOwnership(deployer.address);
+  console.log('precompileContract owner is deployer?... ', deployer.address === await precompileContract.owner());
 }
 
 main().catch((error) => {
