@@ -25,6 +25,20 @@ function random32bitArray(n) {
   return Array.from(result);
 }
 
+async function waitForFinalization(tx) {
+  console.log(`Waiting for transaction to be finalized...`);
+  const receipt = await tx.wait();
+  const finalized = await ethers.provider.getBlock("finalized");
+  while (receipt.blockNumber > finalized.number) {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const newFinalized = await ethers.provider.getBlock("finalized");
+    if (receipt.blockNumber <= newFinalized.number) {
+      console.log(`Transaction is finalized.`);
+      return;
+    }
+  }
+}
+
 async function batchMint(contract, recipient, uriLen = typicalURILength, num = nTXsInBatch) {
   console.log('...Batch Minting', num, "assets", "with tokenURI of length", uriLen);
   const recipients = Array(num).fill(recipient);
@@ -120,6 +134,8 @@ async function main() {
   console.log('Transferring ownership of batchMinter to Bob by deployer...');
   const tx1 = await batchMinter.transferBatchMinterOwnership(bob.address);
   await tx1.wait();
+
+  await waitForFinalization(tx1);
 
   console.log('PrecompileContract owner remains unchanged as expected?... ', await batchMinter.getAddress() === await precompileContract.owner());
   console.log('batchMinter owner has changed as expected?... ', bob.address === await batchMinter.batchMinterOwner());
