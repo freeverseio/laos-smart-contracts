@@ -15,62 +15,42 @@ describe("ERC721UniversalSoulbound", function () {
     await contract.waitForDeployment();
   });
 
-  it("Should report correct version of the uERC721 interface", async function () {
+  it("Should decode to null when all is null", async function () {
     expect(
       await contract.computeTokenId(nullAddress, 0))
       .to.equal(0);
-
-      expect(
-        await contract.computeTokenId('0x90abcdef1234567890abcdef1234567890abcdef', '0x1234567890abcdef'))
-        .to.equal('1917151762750544880654683969214147817878133287987683378847961304559');
-
-      expect(
-        await contract.computeTokenId('0x90abcdef1234567890abcdef1234567890abcdef', '0x1234567890abcdef'))
-        .to.equal('1917151762750544880654683969214147817878133287987683378847961304559');
-  
-      expect(
-        await contract.computeTokenId('0xffffffffffffffffffffffffffffffffffffffff', '0'))
-        .to.equal('1461501637330902918203684832716283019655932542975');
-  
-      expect(
-        await contract.computeTokenId('0x0000000000000000000000000000000000000001', '1'))
-        .to.equal('1461501637330902918203684832716283019655932542977');
-  
-      expect(
-        await contract.computeTokenId('0x1234567890abcdef1234567890abcdef12345678', '0xffffffffffffffffffff'))
-        .to.equal('1766847064778384329583296143170286492852322417545392043886226158472418936');
-      
-              
-
-  //   initOwner: "0x90abcdef1234567890abcdef1234567890abcdef",
-  //   slot: '0x1234567890abcdef',
-  //   expected: "1917151762750544880654683969214147817878133287987683378847961304559",
-  //   expectedToHex: "0x000000001234567890abcdef90abcdef1234567890abcdef1234567890abcdef",
-  // },
-  // {
-  //   initOwner: "0xffffffffffffffffffffffffffffffffffffffff",
-  //   slot: 0,
-  //   expected: "1461501637330902918203684832716283019655932542975",
-  //   expectedToHex: "0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff",
-  // },
-  // {
-  //   initOwner: "0x0000000000000000000000000000000000000000",
-  //   slot: 0,
-  //   expected: "0",
-  //   expectedToHex: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  // },    {
-  //   initOwner: "0x0000000000000000000000000000000000000001",
-  //   slot: 1,
-  //   expected: "1461501637330902918203684832716283019655932542977",
-  //   expectedToHex: "0x0000000000000000000000010000000000000000000000000000000000000001",
-  // },
-  // {
-  //   initOwner: "0x1234567890abcdef1234567890abcdef12345678",
-  //   slot: '0xffffffffffffffffffff',
-  //   expected: "1766847064778384329583296143170286492852322417545392043886226158472418936",
-  //   expectedToHex:"0x0000ffffffffffffffffffff1234567890abcdef1234567890abcdef12345678",
-  // },
-
-
   });
+
+  it("Should decode as expected", async function () {
+    const initOwner = '0x90abcdef1234567890abcdef1234567890abcdef';
+    const slot = '0x1234567890abcdef';
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('1917151762750544880654683969214147817878133287987683378847961304559');
+    expect(ethers.toBeHex(id)).to.equal('0x1234567890abcdef90abcdef1234567890abcdef1234567890abcdef');
+  });
+
+  it("Should decode as expected when slot is null", async function () {
+    const initOwner = '0xffffffffffffffffffffffffffffffffffffffff';
+    const slot = '0';
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('1461501637330902918203684832716283019655932542975');
+    expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffffffffffffffffffffffff');
+  });
+
+  it("Should decode as expected when both params are unit", async function () {
+    const initOwner = '0x0000000000000000000000000000000000000001';
+    const slot = 1;
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('1461501637330902918203684832716283019655932542977');
+    expect(ethers.toBeHex(id)).to.equal('0x010000000000000000000000000000000000000001');
+  });
+
+  it("Should decode as expected", async function () {
+    const initOwner = '0x1234567890abcdef1234567890abcdef12345678';
+    const slot = '0xffffffffffffffffffff';
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('1766847064778384329583296143170286492852322417545392043886226158472418936');
+    expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffff1234567890abcdef1234567890abcdef12345678');
+  });
+
 });
