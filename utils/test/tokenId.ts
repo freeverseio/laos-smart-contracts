@@ -3,6 +3,8 @@ import { ethers } from "hardhat";
 
 describe("ERC721UniversalSoulbound", function () {
 
+  const nullAddress = ethers.toBeHex(0, 20);
+
   let contract: any;
 
   beforeEach(async function () {
@@ -66,5 +68,36 @@ describe("ERC721UniversalSoulbound", function () {
     const id = await contract.computeTokenId(initOwner, slot);
     expect(id).to.equal('115792089237316195423570985008687907853269984665640564039457584007913129639935');
     expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+  });
+
+  it("Array version works as expected", async function () {
+    const initOwners = [
+      nullAddress,
+      '0x90abcdef1234567890abcdef1234567890abcdef',
+      '0xffffffffffffffffffffffffffffffffffffffff',
+      '0x0000000000000000000000000000000000000001',
+      '0x1234567890abcdef1234567890abcdef12345678',
+      '0x1234567890abcdef1234567890abcdef12345678',
+      '0xffffffffffffffffffffffffffffffffffffffff',
+    ];
+    const slots = [
+      0,
+      '0x1234567890abcdef',
+      0,
+      1,
+      '0xffffffffffffffffffff',
+      2n ** 96n - 1n,
+      2n ** 96n - 1n,
+    ];
+
+    expect(await contract.computeTokenIds(initOwners, slots)).to.deep.equal([
+      '0',
+      '1917151762750544880654683969214147817878133287987683378847961304559',
+      '1461501637330902918203684832716283019655932542975',
+      '1461501637330902918203684832716283019655932542977',
+      '1766847064778384329583296143170286492852322417545392043886226158472418936',
+      '115792089237316195423570985007330335221247009504161233812543348627870309439096',
+      '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+    ]);
   });
 });
