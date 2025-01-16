@@ -1,13 +1,11 @@
-# Sample Hardhat Project
+# Minimal Example Illustrating TokenID Generation
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+A mimial [smart contract](./contracts/TokenId.sol) is provided that illustates how tokenIds are generated from initOwner and slot,
+by simply concatenating them.
 
-Try running some of the following tasks:
 
 ```shell
-npx hardhat help
+npm ci
+npx hardhat compile
 npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
 ```
