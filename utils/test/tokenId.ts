@@ -2,8 +2,6 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 describe("ERC721UniversalSoulbound", function () {
-  const maxSlot = 2n ** 96n - 1n;
-  const nullAddress = ethers.toBeHex(0, 20);
 
   let contract: any;
 
@@ -16,6 +14,7 @@ describe("ERC721UniversalSoulbound", function () {
   });
 
   it("Should decode to null when all is null", async function () {
+    const nullAddress = ethers.toBeHex(0, 20);
     expect(
       await contract.computeTokenId(nullAddress, 0))
       .to.equal(0);
@@ -53,4 +52,19 @@ describe("ERC721UniversalSoulbound", function () {
     expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffff1234567890abcdef1234567890abcdef12345678');
   });
 
+  it("Should decode as expected for max slot", async function () {
+    const initOwner = '0x1234567890abcdef1234567890abcdef12345678';
+    const slot = 2n ** 96n - 1n;
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('115792089237316195423570985007330335221247009504161233812543348627870309439096');
+    expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffffffff1234567890abcdef1234567890abcdef12345678');
+  });
+
+  it("Should decode as expected for max slot and initOwner", async function () {
+    const initOwner = '0xffffffffffffffffffffffffffffffffffffffff';
+    const slot = 2n ** 96n - 1n;
+    const id = await contract.computeTokenId(initOwner, slot);
+    expect(id).to.equal('115792089237316195423570985008687907853269984665640564039457584007913129639935');
+    expect(ethers.toBeHex(id)).to.equal('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+  });
 });
