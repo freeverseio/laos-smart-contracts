@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
@@ -10,7 +11,7 @@ import "./Ownable.sol";
  * @notice Developed and maintained by the LAOS Team and Freeverse.
  */
 
-contract LaosBatchMinter is Ownable, EvolutionCollection {
+contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControl {
 
     /**
      * @dev Emitted on deploy of a new BatchMinter contract
