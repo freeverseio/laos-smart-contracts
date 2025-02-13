@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+// import "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
+// import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
@@ -11,7 +13,9 @@ import "./Ownable.sol";
  * @notice Developed and maintained by the LAOS Team and Freeverse.
  */
 
-contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControl {
+contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerable {
+    bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
+    bytes32 internal constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     /**
      * @dev Emitted on deploy of a new BatchMinter contract
@@ -25,7 +29,11 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControl {
 
     constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
+        _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
+        _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
+        _grantRole(ROYALTY_ADMIN_ROLE, _ownerOfPublicMinter);
         emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
+        emit EvolutionCollectionFactory.NewCollection(_ownerOfPublicMinter, precompileAddress);
     }
 
     /**
