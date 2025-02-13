@@ -13,8 +13,9 @@ import "./Ownable.sol";
  */
 
 contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerable {
-    bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
-    bytes32 internal constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
+    bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
+    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /**
      * @dev Emitted on deploy of a new BatchMinter contract
@@ -30,7 +31,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
         _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
         _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
-        _grantRole(ROYALTY_ADMIN_ROLE, _ownerOfPublicMinter);
+        _grantRole(MINTER_ROLE, _ownerOfPublicMinter);
         emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
         emit EvolutionCollectionFactory.NewCollection(_ownerOfPublicMinter, precompileAddress);
     }
