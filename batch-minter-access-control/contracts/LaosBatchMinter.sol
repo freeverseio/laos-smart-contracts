@@ -27,12 +27,12 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
     address public precompileAddress;
 
     constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
-        precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
-        _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
-        _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
-        _grantRole(ROYALTY_ADMIN_ROLE, _ownerOfPublicMinter);
-        emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
-        emit EvolutionCollectionFactory.NewCollection(_ownerOfPublicMinter, precompileAddress);
+        // precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
+        // _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
+        // _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
+        // _grantRole(ROYALTY_ADMIN_ROLE, _ownerOfPublicMinter);
+        // emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
+        // emit EvolutionCollectionFactory.NewCollection(_ownerOfPublicMinter, precompileAddress);
     }
 
     /**
