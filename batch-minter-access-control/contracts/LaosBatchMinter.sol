@@ -54,7 +54,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
         address[] calldata _to,
         uint96[] calldata _slot,
         string[] calldata _tokenURI
-    ) external onlyOwner returns (uint256[] memory) {
+    ) external onlyRole(MINTER_ROLE) returns (uint256[] memory) {
         require(_to.length == _slot.length && _slot.length == _tokenURI.length, "Array lengths must match");
 
         uint256[] memory mintedTokenIds = new uint256[](_to.length);
@@ -75,7 +75,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
         address _to,
         uint96 _slot,
         string calldata _tokenURI
-    ) external onlyOwner returns (uint256) {
+    ) external onlyRole(MINTER_ROLE) returns (uint256) {
         return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, _slot, _tokenURI);
     }
 
