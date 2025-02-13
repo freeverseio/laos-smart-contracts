@@ -15,22 +15,22 @@ describe("LaosBatchMinter", function () {
         [owner, addr1, addr2] = await ethers.getSigners();
 
         const MockEvolutionCollectionFactory = await ethers.getContractFactory("MockEvolutionCollectionFactory");
-        mEvolutionCollectionFactory = (await MockEvolutionCollectionFactory.deploy()) as MockEvolutionCollectionFactory;
+        mEvolutionCollectionFactory = await MockEvolutionCollectionFactory.deploy();
         await mEvolutionCollectionFactory.waitForDeployment();
 
         const mockEvolutionCollection = await ethers.getContractFactory("MockEvolutionCollection");
-        mEvolutionCollection = (await mockEvolutionCollection.deploy(await owner.getAddress())) as MockEvolutionCollection;
+        mEvolutionCollection = (await mockEvolutionCollection.deploy(owner.address)) as MockEvolutionCollection;
         await mEvolutionCollection.waitForDeployment();
 
         const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
-        minter = (await LaosBatchMinter.deploy(await owner.getAddress())) as LaosBatchMinter;
+        minter = (await LaosBatchMinter.deploy(owner.address)) as LaosBatchMinter;
         await minter.waitForDeployment();
     });
 
     it("Should set the correct owner", async function () {
         expect(2).to.equal(2);
-        console.log(await owner.getAddress());
+        console.log(owner.address);
         // console.log(await minter.owner());
-        // expect(await minter.owner()).to.equal(await owner.getAddress());
+        // expect(await minter.owner()).to.equal(owner.address);
     });
 });
