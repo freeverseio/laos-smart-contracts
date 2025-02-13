@@ -35,11 +35,8 @@ describe("LaosBatchMinter", function () {
         await minter.waitForDeployment();
     });
 
-    it("Should set the correct owner", async function () {
-        expect(2).to.equal(2);
-        console.log(owner.address);
-        console.log(await minter.precompileAddress());
+    it("Should set the correct intiial parameters", async function () {
         expect(await minter.precompileAddress()).to.equal(fixedCollectionAddress);
-        // expect(await minter.owner()).to.equal(owner.address);
+        expect(await minter.owner()).to.equal(owner.address);
     });
 });
