@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-// import "@openzeppelin/contracts/access/AccessControl.sol";
+// usage e.g.: onlyRole(METADATA_ADMIN_ROLE)
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
-// import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 import "./Ownable.sol";
