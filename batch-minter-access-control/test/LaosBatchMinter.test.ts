@@ -51,4 +51,14 @@ describe("LaosBatchMinter", function () {
         expect(await minter.hasRole(await minter.MINTER_ROLE(), owner.address)).to.equal(true);
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
     });
+
+    it("Admin can assign roles", async function () {
+        await minter.grantRole(await minter.DEFAULT_ADMIN_ROLE(), addr1.address);
+        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), addr1.address)).to.equal(true);
+    });
+    it("Not admin cannot assign roles", async function () {
+        expect(minter.connect(addr1).grantRole(await minter.DEFAULT_ADMIN_ROLE(), addr2.address))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(addr2.address);
+    });    
 });
