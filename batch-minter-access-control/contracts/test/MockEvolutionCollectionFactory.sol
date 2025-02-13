@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.3;
 
-import "../EvolutionCollection.sol";
+import "../EvolutionCollectionFactory.sol";
 
-contract MockEvolutionCollectionFactory {
+contract MockEvolutionCollectionFactory is EvolutionCollectionFactory {
 
-    function createCollection(address owner) external returns (address) {
+    function createCollection(address _owner) external returns (address) {
         return address(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
     }
 }
