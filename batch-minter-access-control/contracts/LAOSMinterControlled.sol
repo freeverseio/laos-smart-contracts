@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-// usage e.g.: onlyRole(METADATA_ADMIN_ROLE)
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 
 /**
- * @title Simple contract enabling batch minting and evolution
- * @notice Developed and maintained by the LAOS Team and Freeverse.
+ * @title Simple contract to create a LAOS collection adding extra logic to
+ *  grant minting role via OpenZeppelin's AccessControlEnumerable,
+ *  and additionally allowing batch minting and evolving. 
+ * @notice Developed by the LAOS Team and Freeverse
  */
-
-// TODO: decide if we use  MINTER_ROLE or METADATA_ADMIN_ROLE, or BOTH AS VALID
 
 contract LAOSMinterControlled is AccessControlEnumerable {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
