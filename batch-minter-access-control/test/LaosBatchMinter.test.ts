@@ -48,12 +48,13 @@ describe("LaosBatchMinter", function () {
         expect(await minter.METADATA_ADMIN_ROLE()).to.equal("0xe02a0315b383857ac496e9d2b2546a699afaeb4e5e83a1fdef64376d0b74e5a5");
         expect(await minter.MINTER_ROLE()).to.equal("0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6");
         expect(await minter.DEFAULT_ADMIN_ROLE()).to.equal(nullAddressHash);
+        expect(await minter.getRoleAdmin(await minter.METADATA_ADMIN_ROLE())).to.equal(nullAddressHash);
     });
 
     it("Should assign roles as expected", async function () {
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
         expect(await minter.hasRole(await minter.MINTER_ROLE(), owner.address)).to.equal(true);
-        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
+        expect(await minter.hasRole(await minter.METADATA_ADMIN_ROLE(), owner.address)).to.equal(true);
     });
 
     it("Admin can assign roles", async function () {
@@ -100,5 +101,41 @@ describe("LaosBatchMinter", function () {
         await expect(minter.connect(addr1).transferOwnership(addr1.address))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.METADATA_ADMIN_ROLE());
-    });  
+    }); 
+    
+    it("Owner, i.e. the DEFAULT_ADMIN_ROLE, can grantRoles", async function () {
+        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
+
+        // granting METADATA_ADMIN_ROLE:
+        expect(await minter.hasRole(await minter.METADATA_ADMIN_ROLE(), addr1.address)).to.equal(false);
+        await expect(minter.connect(owner).grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address))
+          .to.not.be.reverted;
+        expect(await minter.hasRole(await minter.METADATA_ADMIN_ROLE(), addr1.address)).to.equal(true);
+
+        // granting MINTER_ROLE:
+        expect(await minter.hasRole(await minter.MINTER_ROLE(), addr1.address)).to.equal(false);
+        await expect(minter.connect(owner).grantRole(await minter.MINTER_ROLE(), addr1.address))
+          .to.not.be.reverted;
+        expect(await minter.hasRole(await minter.MINTER_ROLE(), addr1.address)).to.equal(true);
+
+        // The new address having METADATA_ADMIN_ROLE cannot grant new roles:
+          await expect(minter.connect(addr1).grantRole(await minter.METADATA_ADMIN_ROLE(), addr2.address))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(addr1.address, await minter.DEFAULT_ADMIN_ROLE());
+
+        // Granting the DEFAULT_ADMIN_ROLE:
+        await expect(minter.connect(owner).grantRole(await minter.DEFAULT_ADMIN_ROLE(), addr1.address))
+            .to.not.be.reverted;
+  
+        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
+        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), addr1.address)).to.equal(true);
+
+    });   
+
+    // it("grantRole", async function () {
+    //     // await minter.connect(addr1).grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address);
+    //     await expect(minter.connect(owner).grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address))
+    //       .to.not.be.reverted;
+    // });   
+
 });
