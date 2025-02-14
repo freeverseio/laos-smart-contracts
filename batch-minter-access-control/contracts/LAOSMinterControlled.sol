@@ -20,15 +20,16 @@ contract LAOSMinterControlled is AccessControlEnumerable {
     address public precompileAddress;
 
     constructor(address _owner) {
-        // Create a collection using the precompile, and atomically set its owner to be this contract on deploy time:
+        // Creates a collection using the precompile collection factory,
+        // and atomically sets its owner to be this LAOSMinterControlled contract:
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
 
-        // Grant all ownerhsip roles of this newly deployed contract to the provided _owner
+        // Grant all ownership roles of this newly deployed LAOSMinterControlled to the provided _owner
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
         _grantRole(METADATA_ADMIN_ROLE, _owner);
         _grantRole(MINTER_ROLE, _owner);
 
-        // Emit the same (duplicated) event that the collection factory emits, to facilitate offchain listening
+        // Emit the same event from LAOSMinterControlled that the collection factory emits, to facilitate offchain listening
         emit EvolutionCollectionFactory.NewCollection(_owner, precompileAddress);
     }
 
