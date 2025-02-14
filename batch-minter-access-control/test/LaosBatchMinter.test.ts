@@ -88,4 +88,17 @@ describe("LaosBatchMinter", function () {
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.MINTER_ROLE());
     });   
+
+    it("METADATA_ADMIN_ROLE can transferOwnership", async function () {
+        expect(await minter.owner()).to.equal(owner.address);
+        await expect(minter.connect(owner).transferOwnership(addr2.address))
+            .to.not.be.reverted;
+        expect(await minter.owner()).to.equal(addr2.address);
+    });   
+    
+    it("Not METADATA_ADMIN_ROLE cannot transferOwnership", async function () {
+        await expect(minter.connect(addr1).transferOwnership(addr1.address))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(addr1.address, await minter.METADATA_ADMIN_ROLE());
+    });  
 });

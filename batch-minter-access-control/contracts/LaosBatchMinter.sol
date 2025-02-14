@@ -5,7 +5,6 @@ pragma solidity >=0.8.3;
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
-import "./Ownable.sol";
 
 /**
  * @title Simple contract enabling batch minting and evolution
@@ -14,9 +13,8 @@ import "./Ownable.sol";
 
 // TODO: decide if we use  MINTER_ROLE or METADATA_ADMIN_ROLE, or BOTH AS VALID
 
-contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerable {
+contract LaosBatchMinter is EvolutionCollection, AccessControlEnumerable {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
-    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /**
@@ -29,7 +27,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
 
-    constructor(address _ownerOfPublicMinter) Ownable(_ownerOfPublicMinter) {
+    constructor(address _ownerOfPublicMinter) {
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
         _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
         _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
@@ -42,7 +40,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
      * @dev Sets a new owner for the underlying precompiled collection
      * @param _newAddress the ew owner for the underlying precompiled collection
      */
-    function setPrecompileAddress(address _newAddress) public onlyOwner {
+    function setPrecompileAddress(address _newAddress) public onlyRole(METADATA_ADMIN_ROLE) {
         precompileAddress = _newAddress;
     }
 
@@ -112,7 +110,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
      * @dev Transfers the ownership of the underlying precompiled collection contract
      * @param _newOwner the new owner of the underlying precompiled collection contract
      */
-    function transferOwnership(address _newOwner) external onlyOwner {
+    function transferOwnership(address _newOwner) external onlyRole(METADATA_ADMIN_ROLE) {
         EvolutionCollection(precompileAddress).transferOwnership(_newOwner);
     }
 
