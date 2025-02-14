@@ -17,23 +17,20 @@ contract LaosBatchMinter is EvolutionCollection, AccessControlEnumerable {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    /**
-     * @dev Emitted on deploy of a new BatchMinter contract
-     * @param _owner the owner of the newly created BatchMinter
-     * @param _precompileAddress the address of the newly created underlying precompiled collection address
-     */
-    event NewBatchMinter(address indexed _owner, address _precompileAddress);
-
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
     address public precompileAddress;
 
-    constructor(address _ownerOfPublicMinter) {
+    constructor(address _owner) {
+        // Create a collection using the precompile, and atomically set its owner to be this contract on deploy time:
         precompileAddress = EvolutionCollectionFactory(collectionFactoryAddress).createCollection(address(this));
-        _grantRole(DEFAULT_ADMIN_ROLE, _ownerOfPublicMinter);
-        _grantRole(METADATA_ADMIN_ROLE, _ownerOfPublicMinter);
-        _grantRole(MINTER_ROLE, _ownerOfPublicMinter);
-        emit NewBatchMinter(_ownerOfPublicMinter, precompileAddress);
-        emit EvolutionCollectionFactory.NewCollection(_ownerOfPublicMinter, precompileAddress);
+
+        // Grant all ownerhsip roles of this newly deployed contract to the provided _owner
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        _grantRole(METADATA_ADMIN_ROLE, _owner);
+        _grantRole(MINTER_ROLE, _owner);
+
+        // Emit the same (duplicated) event that the collection factory emits, to facilitate offchain listening
+        emit EvolutionCollectionFactory.NewCollection(_owner, precompileAddress);
     }
 
     /**
