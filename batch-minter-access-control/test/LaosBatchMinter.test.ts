@@ -119,7 +119,7 @@ describe("LaosBatchMinter", function () {
         expect(await minter.hasRole(await minter.MINTER_ROLE(), addr1.address)).to.equal(true);
 
         // The new address having METADATA_ADMIN_ROLE cannot grant new roles:
-          await expect(minter.connect(addr1).grantRole(await minter.METADATA_ADMIN_ROLE(), addr2.address))
+        await expect(minter.connect(addr1).grantRole(await minter.METADATA_ADMIN_ROLE(), addr2.address))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.DEFAULT_ADMIN_ROLE());
 
@@ -130,6 +130,17 @@ describe("LaosBatchMinter", function () {
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), addr1.address)).to.equal(true);
 
+        // New DEFAULT_ADMIN_ROLE can assign roles
+        await expect(minter.connect(addr1).grantRole(await minter.MINTER_ROLE(), addr2.address))
+            .to.not.be.reverted;
+
+        // New DEFAULT_ADMIN_ROLE can revoke previous DEFAULT_ADMIN_ROLE
+        await expect(minter.connect(addr1).revokeRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address))
+            .to.not.be.reverted;
+        expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(false);
+        await expect(minter.connect(owner).grantRole(await minter.METADATA_ADMIN_ROLE(), addr2.address))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(owner.address, await minter.DEFAULT_ADMIN_ROLE());
     });   
 
     // it("grantRole", async function () {
