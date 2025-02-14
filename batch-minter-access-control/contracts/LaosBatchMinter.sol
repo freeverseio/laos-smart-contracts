@@ -12,6 +12,8 @@ import "./Ownable.sol";
  * @notice Developed and maintained by the LAOS Team and Freeverse.
  */
 
+// TODO: decide if we use  MINTER_ROLE or METADATA_ADMIN_ROLE, or BOTH AS VALID
+
 contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerable {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
@@ -87,7 +89,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
     function evolveWithExternalURIBatch (
         uint256[] calldata _tokenId,
         string[] calldata _tokenURI
-    ) external onlyOwner {
+    ) external onlyRole(MINTER_ROLE) {
         require(_tokenId.length == _tokenURI.length, "Array lengths must match");
         for (uint256 i = 0; i < _tokenId.length; i++) {
             EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId[i], _tokenURI[i]);
@@ -102,7 +104,7 @@ contract LaosBatchMinter is Ownable, EvolutionCollection, AccessControlEnumerabl
     function evolveWithExternalURI(
         uint256 _tokenId,
         string calldata _tokenURI
-    ) external onlyOwner {
+    ) external onlyRole(MINTER_ROLE) {
          EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId, _tokenURI);
     }
 
