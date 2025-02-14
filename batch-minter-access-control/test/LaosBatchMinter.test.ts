@@ -72,21 +72,32 @@ describe("LAOSMinterControlled", function () {
     it("MINTER_ROLE can mint", async function () {
         await expect(minter.connect(owner).mintWithExternalURI(addr2.address, dummySlot, dummyURI))
             .to.not.be.reverted;
+        await expect(minter.connect(owner).mintWithExternalURIBatch([addr2.address], [dummySlot], [dummyURI]))
+            .to.not.be.reverted;
     });   
     
     it("Not MINTER_ROLE cannot mint", async function () {
         await expect(minter.connect(addr1).mintWithExternalURI(addr2.address, dummySlot, dummyURI))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.MINTER_ROLE());
+        await expect(minter.connect(addr1).mintWithExternalURIBatch([addr2.address], [dummySlot], [dummyURI]))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(addr1.address, await minter.MINTER_ROLE());
+
     });   
 
     it("MINTER_ROLE can evolve", async function () {
         await expect(minter.connect(owner).evolveWithExternalURI(dummyTokenId, dummyURI))
           .to.not.be.reverted;
+        await expect(minter.connect(owner).evolveWithExternalURIBatch([dummyTokenId], [dummyURI]))
+            .to.not.be.reverted;
     });   
-    
+
     it("Not MINTER_ROLE cannot evolve", async function () {
         await expect(minter.connect(addr1).evolveWithExternalURI(dummyTokenId, dummyURI))
+            .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
+            .withArgs(addr1.address, await minter.MINTER_ROLE());
+        await expect(minter.connect(addr1).evolveWithExternalURIBatch([dummyTokenId], [dummyURI]))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.MINTER_ROLE());
     });   
