@@ -103,7 +103,7 @@ describe("LaosBatchMinter", function () {
             .withArgs(addr1.address, await minter.METADATA_ADMIN_ROLE());
     }); 
     
-    it("Owner, i.e. the DEFAULT_ADMIN_ROLE, can grantRoles", async function () {
+    it("Only DEFAULT_ADMIN_ROLE can grantRoles, including the DEFAULT_ADMIN_ROLE itself", async function () {
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
 
         // granting METADATA_ADMIN_ROLE:
@@ -142,11 +142,4 @@ describe("LaosBatchMinter", function () {
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(owner.address, await minter.DEFAULT_ADMIN_ROLE());
     });   
-
-    // it("grantRole", async function () {
-    //     // await minter.connect(addr1).grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address);
-    //     await expect(minter.connect(owner).grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address))
-    //       .to.not.be.reverted;
-    // });   
-
 });
