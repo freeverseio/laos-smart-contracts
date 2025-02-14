@@ -34,14 +34,6 @@ contract LaosBatchMinter is EvolutionCollection, AccessControlEnumerable {
     }
 
     /**
-     * @dev Sets a new owner for the underlying precompiled collection
-     * @param _newAddress the ew owner for the underlying precompiled collection
-     */
-    function setPrecompileAddress(address _newAddress) public onlyRole(METADATA_ADMIN_ROLE) {
-        precompileAddress = _newAddress;
-    }
-
-    /**
      * @dev Mints a batch of new assets to the provided recipients, with the provided tokenURIs
      * @param _to an ordered array containing the recipients of each new asset
      * @param _slot an ordered array containing the slots of each new asset
@@ -119,7 +111,8 @@ contract LaosBatchMinter is EvolutionCollection, AccessControlEnumerable {
     }
 
     /**
-     * @dev Returns the tokenURI of the provided tokenId
+     * @dev Returns the tokenURI of the provided tokenId as provided by the
+     *  underlying precompiled collection contract
      */
     function tokenURI(uint256 _tokenId) external view returns (string memory) {
         return EvolutionCollection(precompileAddress).tokenURI(_tokenId);
