@@ -19,6 +19,7 @@ describe("LAOSMinterControlled", function () {
     const dummyURI = 'dummyURI';
     const dummyTokenId = '46166684518705834130388065924615409827291950694273196647937022621816907952627';
 
+// TODO batch versions
 
     beforeEach(async function () {
         [owner, addr1, addr2] = await ethers.getSigners();
