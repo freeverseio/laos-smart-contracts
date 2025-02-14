@@ -36,7 +36,7 @@ $ npx hardhat run scripts/test-e2e.js --network laos
 
 ## Contract
 
-The contract in `contracts/LaosBatchMinter.sol` simply acts as a proxy for the precompiled contracts except
+The contract in `contracts/LAOSMinterControlled.sol` simply acts as a proxy for the precompiled contracts except
 for the batch mint/evolve methods. On deploy, the constructor creates a new collection, using the LAOS precompiled contract.
 The `batchMinter` contract manages batch-logic, and it uses the precompile internally when executing mints or evolutions. 
 

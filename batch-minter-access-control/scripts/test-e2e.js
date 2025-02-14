@@ -81,8 +81,8 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(`Deploying with account ${deployer.address}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
 
-  const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
-  const batchMinter = await LaosBatchMinter.deploy(deployer.address);
+  const LAOSMinterControlled = await ethers.getContractFactory("LAOSMinterControlled");
+  const batchMinter = await LAOSMinterControlled.deploy(deployer.address);
   await batchMinter.waitForDeployment();
   console.log("...batchMinter deployed at", await batchMinter.getAddress());
 

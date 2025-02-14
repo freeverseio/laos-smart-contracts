@@ -13,7 +13,7 @@ import "./EvolutionCollection.sol";
 
 // TODO: decide if we use  MINTER_ROLE or METADATA_ADMIN_ROLE, or BOTH AS VALID
 
-contract LaosBatchMinter is EvolutionCollection, AccessControlEnumerable {
+contract LAOSMinterControlled is AccessControlEnumerable {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 

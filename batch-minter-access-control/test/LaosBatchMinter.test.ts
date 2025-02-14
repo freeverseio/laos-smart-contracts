@@ -1,10 +1,10 @@
 import { ethers, network } from "hardhat";
 import { expect } from "chai";
-import { LaosBatchMinter, MockEvolutionCollectionFactory, MockEvolutionCollection } from "../typechain-types";
+import { LAOSMinterControlled, MockEvolutionCollectionFactory, MockEvolutionCollection } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-describe("LaosBatchMinter", function () {
-    let minter: LaosBatchMinter;
+describe("LAOSMinterControlled", function () {
+    let minter: LAOSMinterControlled;
     let mockFactory: MockEvolutionCollectionFactory;
     let mockCollection: MockEvolutionCollection;
     let owner: HardhatEthersSigner;
@@ -34,8 +34,8 @@ describe("LaosBatchMinter", function () {
         mockCollection = (await mockEvolutionCollection.deploy(owner.address)) as MockEvolutionCollection;
         await mockCollection.waitForDeployment();
 
-        const LaosBatchMinter = await ethers.getContractFactory("LaosBatchMinter");
-        minter = (await LaosBatchMinter.deploy(owner.address)) as LaosBatchMinter;
+        const LAOSMinterControlled = await ethers.getContractFactory("LAOSMinterControlled");
+        minter = (await LAOSMinterControlled.deploy(owner.address)) as LAOSMinterControlled;
         await minter.waitForDeployment();
     });
 
