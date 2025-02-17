@@ -47,10 +47,14 @@ describe("LAOSMinterControlled", function () {
         expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
     });
 
-    it("mocked precompileCollection returns as expected", async function () {
+    it("Mocked precompileCollection returns as expected", async function () {
         expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
         expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
         expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
+    });
+
+    it("Minter shoud forward tokenURI to precompileCollection", async function () {
+        expect(await minter.tokenURI(dummyTokenId)).to.equal('42');
     });
 
     it("Should set role codes as expected", async function () {
