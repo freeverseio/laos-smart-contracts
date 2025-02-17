@@ -83,9 +83,12 @@ describe("LAOSMinterControlled", function () {
 
     it("MINTER_ROLE can mint", async function () {
         await expect(minter.connect(owner).mintWithExternalURI(addr2.address, dummySlot, dummyURI))
-            .to.not.be.reverted;
+            .to.emit(minter, "MintedWithExternalURI")
+            .withArgs(addr2.address, dummySlot, '40839153222538263559601324293596910229367430447911128956835159180668097766024', dummyURI);
+
         await expect(minter.connect(owner).mintWithExternalURIBatch([addr2.address], [dummySlot], [dummyURI]))
-            .to.not.be.reverted;
+            .to.emit(minter, "MintedWithExternalURI")
+            .withArgs(addr2.address, dummySlot, '40839153222538263559601324293596910229367430447911128956835159180668097766024', dummyURI);
     });   
     
     it("Not MINTER_ROLE cannot mint", async function () {

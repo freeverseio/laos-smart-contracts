@@ -49,7 +49,8 @@ contract LAOSMinterControlled is ILAOSMinterControlled, AccessControlEnumerable 
         uint96 _slot,
         string calldata _tokenURI
     ) external onlyRole(MINTER_ROLE) returns (uint256 _tokenId) {
-        return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, _slot, _tokenURI);
+        _tokenId = EvolutionCollection(precompileAddress).mintWithExternalURI(_to, _slot, _tokenURI);
+        emit EvolutionCollection.MintedWithExternalURI(_to, _slot, _tokenId, _tokenURI);
     }
 
     /**
@@ -61,7 +62,8 @@ contract LAOSMinterControlled is ILAOSMinterControlled, AccessControlEnumerable 
         uint256 _tokenId,
         string calldata _tokenURI
     ) external onlyRole(MINTER_ROLE) {
-         EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId, _tokenURI);
+        EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId, _tokenURI);
+        emit EvolutionCollection.EvolvedWithExternalURI(_tokenId, _tokenURI);
     }
 
     /**
@@ -82,6 +84,7 @@ contract LAOSMinterControlled is ILAOSMinterControlled, AccessControlEnumerable 
 
         for (uint256 i = 0; i < _to.length; i++) {
             _tokenIds[i] = EvolutionCollection(precompileAddress).mintWithExternalURI(_to[i], _slot[i], _tokenURI[i]);
+            emit EvolutionCollection.MintedWithExternalURI(_to[i], _slot[i], _tokenIds[i], _tokenURI[i]);
         }
         return _tokenIds;
     }
@@ -98,6 +101,7 @@ contract LAOSMinterControlled is ILAOSMinterControlled, AccessControlEnumerable 
         require(_tokenId.length == _tokenURI.length, "Array lengths must match");
         for (uint256 i = 0; i < _tokenId.length; i++) {
             EvolutionCollection(precompileAddress).evolveWithExternalURI(_tokenId[i], _tokenURI[i]);
+            emit EvolutionCollection.EvolvedWithExternalURI(_tokenId[i], _tokenURI[i]);
         }
     }
 
