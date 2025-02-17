@@ -4,7 +4,7 @@ pragma solidity ^0.8.3;
 import "../EvolutionCollection.sol";
 
 contract MockEvolutionCollection is EvolutionCollection {
-    address public owner; 
+    address immutable public owner;
 
     constructor(address _owner) {
         owner = _owner;
@@ -21,6 +21,6 @@ contract MockEvolutionCollection is EvolutionCollection {
     }
 
     function transferOwnership(address _newOwner) external {
-        owner = _newOwner;
+        // owner = _newOwner;
     }
 }

@@ -6,6 +6,6 @@ import "../EvolutionCollectionFactory.sol";
 contract MockEvolutionCollectionFactory is EvolutionCollectionFactory {
 
     function createCollection(address _owner) external returns (address) {
-        return address(0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0);
+        return address(0x0000000000000000000000000000000000000404);
     }
 }

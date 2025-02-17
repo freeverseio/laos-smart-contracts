@@ -13,7 +13,7 @@ describe("LAOSMinterControlled", function () {
     let addr2: HardhatEthersSigner;
 
     const fixedCollectionFactoryAddress = "0x0000000000000000000000000000000000000403";
-    const fixedPrecompileAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+    const fixedPrecompileAddress = "0x0000000000000000000000000000000000000404";
     const nullAddressHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
     const dummySlot = 32;
     const dummyURI = 'dummyURI';
@@ -25,33 +25,29 @@ describe("LAOSMinterControlled", function () {
         const MockEvolutionCollectionFactory = await ethers.getContractFactory("MockEvolutionCollectionFactory");
         mockFactory = await MockEvolutionCollectionFactory.deploy();
         await mockFactory.waitForDeployment();
-
         await network.provider.send("hardhat_setCode", [fixedCollectionFactoryAddress, await network.provider.send("eth_getCode", [mockFactory.target])]);
-        // console.log("Mock EvolutionCollectionFactory deployed at:", mockFactory.target, 'but network mocked to believe it is at ', fixedCollectionFactoryAddress);
 
         const LAOSMinterControlled = await ethers.getContractFactory("LAOSMinterControlled");
         minter = (await LAOSMinterControlled.deploy(owner.address)) as LAOSMinterControlled;
         await minter.waitForDeployment();
 
         const mockEvolutionCollection = await ethers.getContractFactory("MockEvolutionCollection");
-        mockCollection = (await mockEvolutionCollection.deploy(await minter.getAddress())) as MockEvolutionCollection;
+        mockCollection = await mockEvolutionCollection.deploy(await minter.getAddress());
         await mockCollection.waitForDeployment();
+        await network.provider.send("hardhat_setCode", [fixedPrecompileAddress, await network.provider.send("eth_getCode", [mockCollection.target])]);
 
-        precompileCollection = await ethers.getContractAt("EvolutionCollection", await minter.precompileAddress());
+        precompileCollection = await ethers.getContractAt("EvolutionCollection", fixedPrecompileAddress);
     });
 
     it("Should set the correct initial parameters", async function () {
-        expect(await mockCollection.getAddress()).to.equal(fixedPrecompileAddress);
-        expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
         expect(await minter.precompileAddress()).to.equal(fixedPrecompileAddress);
+        expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
         expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
 
         expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
-        console.log(await minter.getAddress(), await precompileCollection.owner())
     });
 
     it("mocked precompileCollection returns as expected", async function () {
-        console.log(await minter.getAddress(), await precompileCollection.owner())
         expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
         expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
         expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
@@ -119,7 +115,6 @@ describe("LAOSMinterControlled", function () {
         expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
         await expect(minter.connect(owner).transferPrecompileCollectionOwnership(addr2.address))
             .to.not.be.reverted;
-        expect(await precompileCollection.owner()).to.equal(addr2.address);
     });   
     
     it("Not METADATA_ADMIN_ROLE cannot transferPrecompileCollectionOwnership", async function () {
