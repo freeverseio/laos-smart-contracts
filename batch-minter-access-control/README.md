@@ -1,7 +1,25 @@
-# A contract to do batch minting and evolution interacting with LAOS precompiles
+# Smart contract for managing a LAOS collection with controlled minting and evolution.
 
-Note that all methods remain in sole control of the owner of the batchMinter contract.
-This repository is experimental, use at your own risk.
+
+This contract adds access control to the main methods exposed by the precompiled collections on the LAOS Network.  
+It closely follows the pattern used by [Sequence](https://github.com/0xsequence/contracts-library/blob/3f66a7dc0e06bc040b2deead8d472c516641fe84/src/tokens/ERC721/README.md#L4),  
+which, in turn, inherits code from [OpenZeppelin's AccessControlEnumerable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/extensions/AccessControlEnumerable.sol) Solidity library.
+
+In addition, the contract exposes convenient batch versions of the precompiled mint and evolve methods,  
+allowing atomic minting and evolution of multiple assets in a single transaction.
+
+In particular, these are the roles and callable methods:
+
+
+| Method Name                          | Role             |
+|--------------------------------------|-----------------|
+| `mintWithExternalURI`               | `MINTER_ROLE`   |
+| `evolveWithExternalURI`             | `MINTER_ROLE`   |
+| `mintWithExternalURIBatch`          | `MINTER_ROLE`   |
+| `evolveWithExternalURIBatch`        | `MINTER_ROLE`   |
+| `transferPrecompileCollectionOwnership` | `MINT_ADMIN_ROLE` |
+
+
 
 ## Install and deploy
 
