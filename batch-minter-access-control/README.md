@@ -19,6 +19,11 @@ In particular, these are the roles and callable methods:
 | `evolveWithExternalURIBatch`        | `MINTER_ROLE`   |
 | `transferPrecompileCollectionOwnership` | `MINT_ADMIN_ROLE` |
 
+When deploying the `LAOSMinterControlled` contract, the constructor initializes everything required:
+
+* It creates a LAOS collection using the precompiled factory and assigns its ownership to the newly deployed `LAOSMinterControlled` contract address.  
+* It assigns the provided owner address the roles of `MINTER_ROLE`, `MINT_ADMIN_ROLE`, and `DEFAULT_ADMIN_ROLE`.  
+* It emits the same `NewCollection` event as the precompiled factory to facilitate indexing and external monitoring.  
 
 
 ## Install and deploy
