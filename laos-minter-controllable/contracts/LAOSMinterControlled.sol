@@ -2,6 +2,7 @@
 pragma solidity >=0.8.3;
 
 import "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
+import "./ILAOSMinterControlled.sol";
 import "./EvolutionCollectionFactory.sol";
 import "./EvolutionCollection.sol";
 
@@ -15,7 +16,7 @@ import "./EvolutionCollection.sol";
  */
 
 
-contract LAOSMinterControlled is AccessControlEnumerable {
+contract LAOSMinterControlled is ILAOSMinterControlled, AccessControlEnumerable {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -41,12 +42,13 @@ contract LAOSMinterControlled is AccessControlEnumerable {
      * @param _to the recipients of the new asset
      * @param _slot the slot of the new asset
      * @param _tokenURI the tokenURI of the new asset
+     * @return _tokenId the id of the new asset
      */
     function mintWithExternalURI (
         address _to,
         uint96 _slot,
         string calldata _tokenURI
-    ) external onlyRole(MINTER_ROLE) returns (uint256) {
+    ) external onlyRole(MINTER_ROLE) returns (uint256 _tokenId) {
         return EvolutionCollection(precompileAddress).mintWithExternalURI(_to, _slot, _tokenURI);
     }
 
@@ -67,20 +69,21 @@ contract LAOSMinterControlled is AccessControlEnumerable {
      * @param _to an ordered array containing the recipients of each new asset
      * @param _slot an ordered array containing the slots of each new asset
      * @param _tokenURI an ordered array containing the tokenURI of each new asset
+     * @return _tokenIds the ids of the new assets
      */
     function mintWithExternalURIBatch (
         address[] calldata _to,
         uint96[] calldata _slot,
         string[] calldata _tokenURI
-    ) external onlyRole(MINTER_ROLE) returns (uint256[] memory) {
+    ) external onlyRole(MINTER_ROLE) returns (uint256[] memory _tokenIds) {
         require(_to.length == _slot.length && _slot.length == _tokenURI.length, "Array lengths must match");
 
-        uint256[] memory mintedTokenIds = new uint256[](_to.length);
+        _tokenIds = new uint256[](_to.length);
 
         for (uint256 i = 0; i < _to.length; i++) {
-            mintedTokenIds[i] = EvolutionCollection(precompileAddress).mintWithExternalURI(_to[i], _slot[i], _tokenURI[i]);
+            _tokenIds[i] = EvolutionCollection(precompileAddress).mintWithExternalURI(_to[i], _slot[i], _tokenURI[i]);
         }
-        return mintedTokenIds;
+        return _tokenIds;
     }
 
     /**
@@ -109,8 +112,9 @@ contract LAOSMinterControlled is AccessControlEnumerable {
     /**
      * @dev Returns the tokenURI of the provided tokenId as provided by the
      *  underlying precompiled collection
+     * @return _tokenURI the corresponding tokenURI
      */
-    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+    function tokenURI(uint256 _tokenId) external view returns (string memory _tokenURI) {
         return EvolutionCollection(precompileAddress).tokenURI(_tokenId);
     }
 }
