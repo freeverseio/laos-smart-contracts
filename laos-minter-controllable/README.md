@@ -47,3 +47,10 @@ PRIVATE_KEY="abcd...1234"
 ```shell
 $ npx hardhat run scripts/deploy.js --network laos
 ```
+
+## Contract Verification
+
+Flattening the contract is useful to verify its code in block explorers:
+```shell
+$ npx hardhat flatten contracts/LAOSMinterControlled.sol > flattened.sol
+```
