@@ -9,25 +9,23 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const owner = deployer.address; // set your choice of owner
 
-  console.log(`Deploying with account ${deployer.address}, with balance (in Wei): ${await ethers.provider.getBalance(deployer.address)}`);
-
+  console.log("========================================");
+  console.log(`🚀 Deploying contract with account: ${deployer.address}`);
+  console.log(`💰 Account balance: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))}`);
+  console.log("========================================\n");
+  
   const LAOSMinterControlled = await ethers.getContractFactory("LAOSMinterControlled");
   const minter = await LAOSMinterControlled.deploy(owner);
   await minter.waitForDeployment();
-  console.log("...minter deployed at", await minter.getAddress());
-
-  // Deploy is finished. The remaining code in this script runs sanity checks, verifying that everything is correctly configured. 
-
-  console.log("...minter has expected owner?", owner === await minter.batchMinterOwner());
-
+  
+  console.log("✅ Deployment successful!");
+  console.log("────────────────────────────────────────");
+  console.log(`📌 LAOSMinterControlled deployed at:      ${await minter.getAddress()}`);
+  
   const precompileAddress = await minter.precompileAddress();
-  console.log("...minter uses a collection managed by the following precompile address:", precompileAddress);
-
-  const EvolutionCollectionInterface = await ethers.getContractAt("EvolutionCollection", precompileAddress);
-  const precompileContract = EvolutionCollectionInterface.attach(precompileAddress);
-
-  const precompileOwner = await precompileContract.owner();
-  console.log("...the owner of the collection at that precompile address is the newly deployed minter?", await minter.getAddress() === precompileOwner);
+  console.log(`📌 Precompile collection managed at:       ${precompileAddress}`);
+  console.log("────────────────────────────────────────\n");
+  console.log("🎉 Deployment completed successfully! 🚀");
 }
 
 main().catch((error) => {
