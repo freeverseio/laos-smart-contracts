@@ -25,6 +25,8 @@ When deploying the [LAOSMinterControlled](contracts/LAOSMinterControlled.sol) co
 * It assigns the provided owner address the roles of `MINTER_ROLE`, `MINT_ADMIN_ROLE`, and `DEFAULT_ADMIN_ROLE`.  
 * It emits the same `NewCollection` event as the precompiled factory to facilitate indexing and external monitoring.  
 
+Likewise, all mint/evolved events emitted by the precompile LAOS collection are emitted by the [LAOSMinterControlled](contracts/LAOSMinterControlled.sol) contract,
+again, to facilitate indexing and external monitoring.
 
 ## Install
 
