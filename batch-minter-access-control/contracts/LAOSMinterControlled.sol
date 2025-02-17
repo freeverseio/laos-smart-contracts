@@ -16,7 +16,7 @@ import "./EvolutionCollection.sol";
 
 
 contract LAOSMinterControlled is AccessControlEnumerable {
-    bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
+    bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address public constant collectionFactoryAddress = 0x0000000000000000000000000000000000000403;
@@ -29,7 +29,7 @@ contract LAOSMinterControlled is AccessControlEnumerable {
 
         // Grant all roles of this newly deployed LAOSMinterControlled to the provided `_owner`
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
-        _grantRole(METADATA_ADMIN_ROLE, _owner);
+        _grantRole(MINT_ADMIN_ROLE, _owner);
         _grantRole(MINTER_ROLE, _owner);
 
         // Mirrors the event emitted by the collection factory to facilitate indexing and external monitoring.
@@ -102,7 +102,7 @@ contract LAOSMinterControlled is AccessControlEnumerable {
      * @dev Transfers the ownership of the underlying precompiled collection
      * @param _newOwner the new owner of the underlying precompiled collection
      */
-    function transferPrecompileCollectionOwnership(address _newOwner) external onlyRole(METADATA_ADMIN_ROLE) {
+    function transferPrecompileCollectionOwnership(address _newOwner) external onlyRole(MINT_ADMIN_ROLE) {
         EvolutionCollection(precompileAddress).transferOwnership(_newOwner);
     }
 
