@@ -119,7 +119,14 @@ describe("LAOSMinterControlled", function () {
         expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
         await expect(minter.connect(owner).transferPrecompileCollectionOwnership(addr2.address))
             .to.not.be.reverted;
-    });   
+    });  
+    
+    it("Newly received METADATA_ADMIN_ROLE can transferPrecompileCollectionOwnership", async function () {
+        expect(await minter.hasRole(await minter.METADATA_ADMIN_ROLE(), addr1.address)).to.equal(false);
+        await minter.grantRole(await minter.METADATA_ADMIN_ROLE(), addr1.address);
+        await expect(minter.connect(addr1).transferPrecompileCollectionOwnership(addr2.address))
+            .to.not.be.reverted;
+    });
     
     it("Not METADATA_ADMIN_ROLE cannot transferPrecompileCollectionOwnership", async function () {
         await expect(minter.connect(addr1).transferPrecompileCollectionOwnership(addr1.address))
