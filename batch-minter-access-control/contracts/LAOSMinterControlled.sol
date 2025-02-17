@@ -102,15 +102,8 @@ contract LAOSMinterControlled is AccessControlEnumerable {
      * @dev Transfers the ownership of the underlying precompiled collection
      * @param _newOwner the new owner of the underlying precompiled collection
      */
-    function transferOwnership(address _newOwner) external onlyRole(METADATA_ADMIN_ROLE) {
+    function transferPrecompileCollectionOwnership(address _newOwner) external onlyRole(METADATA_ADMIN_ROLE) {
         EvolutionCollection(precompileAddress).transferOwnership(_newOwner);
-    }
-
-    /**
-     * @dev Returns the owner of the underlying precompiled collection
-     */
-    function owner() public view returns (address){
-        return EvolutionCollection(precompileAddress).owner();
     }
 
     /**

@@ -1,25 +1,23 @@
 import { ethers, network } from "hardhat";
 import { expect } from "chai";
-import { LAOSMinterControlled, MockEvolutionCollectionFactory, MockEvolutionCollection } from "../typechain-types";
+import { LAOSMinterControlled, MockEvolutionCollectionFactory, MockEvolutionCollection, EvolutionCollection } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("LAOSMinterControlled", function () {
     let minter: LAOSMinterControlled;
     let mockFactory: MockEvolutionCollectionFactory;
     let mockCollection: MockEvolutionCollection;
+    let precompileCollection: EvolutionCollection;
     let owner: HardhatEthersSigner;
     let addr1: HardhatEthersSigner;
     let addr2: HardhatEthersSigner;
 
     const fixedCollectionFactoryAddress = "0x0000000000000000000000000000000000000403";
-    const fixedCollectionAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+    const fixedPrecompileAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
     const nullAddressHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
-    const nullAddress = ethers.toBeHex(0, 20);
     const dummySlot = 32;
     const dummyURI = 'dummyURI';
     const dummyTokenId = '46166684518705834130388065924615409827291950694273196647937022621816907952627';
-
-// TODO batch versions
 
     beforeEach(async function () {
         [owner, addr1, addr2] = await ethers.getSigners();
@@ -31,18 +29,32 @@ describe("LAOSMinterControlled", function () {
         await network.provider.send("hardhat_setCode", [fixedCollectionFactoryAddress, await network.provider.send("eth_getCode", [mockFactory.target])]);
         // console.log("Mock EvolutionCollectionFactory deployed at:", mockFactory.target, 'but network mocked to believe it is at ', fixedCollectionFactoryAddress);
 
-        const mockEvolutionCollection = await ethers.getContractFactory("MockEvolutionCollection");
-        mockCollection = (await mockEvolutionCollection.deploy(owner.address)) as MockEvolutionCollection;
-        await mockCollection.waitForDeployment();
-
         const LAOSMinterControlled = await ethers.getContractFactory("LAOSMinterControlled");
         minter = (await LAOSMinterControlled.deploy(owner.address)) as LAOSMinterControlled;
         await minter.waitForDeployment();
+
+        const mockEvolutionCollection = await ethers.getContractFactory("MockEvolutionCollection");
+        mockCollection = (await mockEvolutionCollection.deploy(await minter.getAddress())) as MockEvolutionCollection;
+        await mockCollection.waitForDeployment();
+
+        precompileCollection = await ethers.getContractAt("EvolutionCollection", await minter.precompileAddress());
     });
 
     it("Should set the correct initial parameters", async function () {
-        expect(await minter.precompileAddress()).to.equal(fixedCollectionAddress);
-        expect(await minter.owner()).to.equal(owner.address);
+        expect(await mockCollection.getAddress()).to.equal(fixedPrecompileAddress);
+        expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
+        expect(await minter.precompileAddress()).to.equal(fixedPrecompileAddress);
+        expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
+
+        expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
+        console.log(await minter.getAddress(), await precompileCollection.owner())
+    });
+
+    it("mocked precompileCollection returns as expected", async function () {
+        console.log(await minter.getAddress(), await precompileCollection.owner())
+        expect(await precompileCollection.getAddress()).to.equal(fixedPrecompileAddress);
+        expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
+        expect(await precompileCollection.tokenURI(dummyTokenId)).to.equal('42');
     });
 
     it("Should set role codes as expected", async function () {
@@ -102,15 +114,16 @@ describe("LAOSMinterControlled", function () {
             .withArgs(addr1.address, await minter.MINTER_ROLE());
     });   
 
-    it("METADATA_ADMIN_ROLE can transferOwnership", async function () {
-        expect(await minter.owner()).to.equal(owner.address);
-        await expect(minter.connect(owner).transferOwnership(addr2.address))
+    it("METADATA_ADMIN_ROLE can transferPrecompileCollectionOwnership", async function () {
+        expect(await minter.hasRole(await minter.METADATA_ADMIN_ROLE(), owner.address)).to.equal(true);
+        expect(await precompileCollection.owner()).to.equal(await minter.getAddress());
+        await expect(minter.connect(owner).transferPrecompileCollectionOwnership(addr2.address))
             .to.not.be.reverted;
-        expect(await minter.owner()).to.equal(addr2.address);
+        expect(await precompileCollection.owner()).to.equal(addr2.address);
     });   
     
-    it("Not METADATA_ADMIN_ROLE cannot transferOwnership", async function () {
-        await expect(minter.connect(addr1).transferOwnership(addr1.address))
+    it("Not METADATA_ADMIN_ROLE cannot transferPrecompileCollectionOwnership", async function () {
+        await expect(minter.connect(addr1).transferPrecompileCollectionOwnership(addr1.address))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.METADATA_ADMIN_ROLE());
     }); 
