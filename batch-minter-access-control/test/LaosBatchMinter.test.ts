@@ -123,6 +123,12 @@ describe("LAOSMinterControlled", function () {
             .withArgs(addr1.address, await minter.METADATA_ADMIN_ROLE());
     }); 
     
+    it("Not METADATA_ADMIN_ROLE cannot transferPrecompileCollectionOwnership via direct call", async function () {
+        await expect(precompileCollection.connect(addr1).transferOwnership(addr1.address))
+            .to.be.revertedWithCustomError(mockCollection, "OwnableUnauthorizedAccount")
+            .withArgs(addr1.address);
+    }); 
+    
     it("Only DEFAULT_ADMIN_ROLE can grantRoles, including the DEFAULT_ADMIN_ROLE itself", async function () {
         expect(await minter.hasRole(await minter.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
 

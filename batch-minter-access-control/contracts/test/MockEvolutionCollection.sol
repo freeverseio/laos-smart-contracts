@@ -24,6 +24,8 @@ import "../EvolutionCollection.sol";
 contract MockEvolutionCollection is EvolutionCollection {
     address immutable public owner;
 
+    error OwnableUnauthorizedAccount(address account);
+
     constructor(address _owner) {
         owner = _owner;
     }
@@ -41,5 +43,7 @@ contract MockEvolutionCollection is EvolutionCollection {
     // Change of ownership not implemented in this mock becasue
     // state of this contract is irrelevant.
     // Only permissions are tested
-    function transferOwnership(address _newOwner) external {}
+    function transferOwnership(address _newOwner) external {
+        if (msg.sender != owner) revert OwnableUnauthorizedAccount(msg.sender);
+    }
 }
