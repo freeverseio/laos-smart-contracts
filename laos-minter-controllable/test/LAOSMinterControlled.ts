@@ -98,14 +98,16 @@ describe("LAOSMinterControlled", function () {
         await expect(minter.connect(addr1).mintWithExternalURIBatch([addr2.address], [dummySlot], [dummyURI]))
             .to.be.revertedWithCustomError(minter, "AccessControlUnauthorizedAccount")
             .withArgs(addr1.address, await minter.MINTER_ROLE());
-
     });   
 
     it("MINTER_ROLE can evolve", async function () {
         await expect(minter.connect(owner).evolveWithExternalURI(dummyTokenId, dummyURI))
-          .to.not.be.reverted;
+            .to.emit(minter, "EvolvedWithExternalURI")
+            .withArgs(dummyTokenId, dummyURI);
+
         await expect(minter.connect(owner).evolveWithExternalURIBatch([dummyTokenId], [dummyURI]))
-            .to.not.be.reverted;
+            .to.emit(minter, "EvolvedWithExternalURI")
+            .withArgs(dummyTokenId, dummyURI);
     });   
 
     it("Not MINTER_ROLE cannot evolve", async function () {
