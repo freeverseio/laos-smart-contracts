@@ -25,6 +25,7 @@ async function batchMint(contract) {
   ];
 
   const tx = await contract.mintWithExternalURIBatch(recipients, randoms, uris);
+  console.log(`🔗 Transaction Hash: ${tx.hash}`);
   const receipt = await tx.wait();
 
   console.log(`✅ Gas used for minting: ${receipt.gasUsed.toString()}`);
