@@ -17,7 +17,7 @@ In particular, these are the roles and callable methods:
 | `transferPrecompileCollectionOwnership` | `MINT_ADMIN_ROLE` |
 
 
-## Deploy in detal
+## Deploy in detail
 When deploying the [LAOSMinterControlled](contracts/LAOSMinterControlled.sol) contract, the constructor initializes everything required:
 * It creates a LAOS precompiled collection using the precompiled factory and assigns its ownership to the newly deployed `LAOSMinterControlled` contract address.  
 * It assigns the provided owner address the roles of `MINTER_ROLE`, `MINT_ADMIN_ROLE`, and `DEFAULT_ADMIN_ROLE`.  
