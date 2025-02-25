@@ -34,6 +34,10 @@ When minting/evolving via `LAOSMinterControlled`, the following events are emitt
 * LAOS precompiled collection emits `MintedWithExternalURI(to, slot, tokenId, tokenURI)` as always
 * LAOSMinterControlled also emits `MintedWithExternalURI(to, slot, tokenId, tokenURI)`, again, to facilitate indexing and external monitoring.
 
+Check this [Example of a mint TX](https://explorer.laosnetwork.io/tx/0xe6e3dbb8778e90cd2662fd06a17cff207bbb652800196209ceeab50af4ec4f64?tab=logs)
+
+
+
 ## Install
 
 1. To install, compile and test:
