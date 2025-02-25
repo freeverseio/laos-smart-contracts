@@ -22,7 +22,7 @@ When deploying the [LAOSMinterControlled](contracts/LAOSMinterControlled.sol) co
 * It creates a LAOS precompiled collection using the precompiled factory and assigns its ownership to the newly deployed `LAOSMinterControlled` contract address.  
 * It assigns the provided owner address the roles of `MINTER_ROLE`, `MINT_ADMIN_ROLE`, and `DEFAULT_ADMIN_ROLE`.  
 
-Events deployed:
+Events emitted on deploy:
 * LAOSMinterControlled emits `NewCollection(owner_all_rolles, precompileCollectionAddress)`, where `owner_all_rolles` is the address provided on deploy, which is assigned all roles.
 * PrecompileCollectionFactory at `0x00...403` emits, as always, `NewCollection(LAOSMinterControlledAddress, precompileCollectionAddress)`, where `LAOSMinterControlledAddress` is the address of the newly deployed LAOSMinterControlled, since this is the owner of the LAOS precompiled collection`
 
