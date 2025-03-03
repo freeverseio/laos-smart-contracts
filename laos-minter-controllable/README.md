@@ -37,6 +37,17 @@ When minting/evolving via `LAOSMinterControlled`, the following events are emitt
 Check this [Example of a mint TX](https://explorer.laosnetwork.io/tx/0xe6e3dbb8778e90cd2662fd06a17cff207bbb652800196209ceeab50af4ec4f64?tab=logs)
 
 
+## Usage when setting up Bridgeless Minting
+
+* Deploy the `LAOSMinterControlled` contract and store:
+    * The deployed address: `LAOSMinterControlled.address`
+    * The address of the newly created LAOS precompiled collection, by listening to the `NewCollection` event emitted during deployment.
+
+* Deploy a [uERC721](https://github.com/freeverseio/laos-erc721) on the blockchain you want to scale, with `baseURI` pointing to the **LAOS precompiled collection**.
+
+* Send all transactions to `LAOSMinterControlled`:
+    * All minting and evolving actions.
+    * All required `grantRole` transactions, e.g., to enable users other than the `owner` specified during deployment. These new users can also send transactions to `LAOSMinterControlled`.
 
 ## Install
 
